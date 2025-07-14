@@ -39,8 +39,8 @@ export default function LoginPage() {
     // Verificar credenciais para o usuário de teste
     if (
       userType === "motorista" &&
-      formData.email === "joao.silva41@estudante.ifms.edu.br" &&
-      formData.senha === "pauloluanruth123"
+      formData.email === "estacioneja@gmail.com" &&
+      formData.senha === "123456"
     ) {
       setTimeout(() => {
         setIsLoading(false)
@@ -52,8 +52,8 @@ export default function LoginPage() {
       }, 1500)
     } else if (
       userType === "instituicao" &&
-      formData.email === "joao.silva41@estudante.ifms.edu.br" &&
-      formData.senha === "pauloluanruth123"
+      formData.email === "estacioneja@gmail.com" &&
+      formData.senha === "123456"
     ) {
       setTimeout(() => {
         setIsLoading(false)
@@ -126,8 +126,8 @@ export default function LoginPage() {
                     {isLoading ? "Entrando..." : "Entrar como Motorista"}
                   </Button>
                   <div className="text-center text-sm text-muted-foreground">
-                    <p>Teste com: joao.silva41@estudante.ifms.edu.br</p>
-                    <p>Senha: pauloluanruth123</p>
+                    <p>Teste com: estacioneja@gmail.com</p>
+                    <p>Senha: 123456</p>
                   </div>
                 </div>
               </form>
@@ -168,8 +168,8 @@ export default function LoginPage() {
                     {isLoading ? "Entrando..." : "Entrar como Instituição"}
                   </Button>
                   <div className="text-center text-sm text-muted-foreground">
-                    <p>Teste com: joao.silva41@estudante.ifms.edu.br</p>
-                    <p>Senha: pauloluanruth123</p>
+                    <p>Teste com: estacioneja@gmail.com</p>
+                    <p>Senha:123456</p>
                   </div>
                 </div>
               </form>

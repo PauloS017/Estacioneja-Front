@@ -1,11 +1,9 @@
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { AccessibilityIcon as Accessible, Car, Settings } from "lucide-react"
-import Link from "next/link"
+import { Building2, Car, Users, ShipWheelIcon as Wheelchair, Settings, Eye } from "lucide-react"
 
-interface EstacionamentoProps {
+interface Estacionamento {
   id: string
   nome: string
   capacidade: number
@@ -16,82 +14,85 @@ interface EstacionamentoProps {
 }
 
 interface EstacionamentoCardProps {
-  estacionamento: EstacionamentoProps
+  estacionamento: Estacionamento
 }
 
 export function EstacionamentoCard({ estacionamento }: EstacionamentoCardProps) {
   const ocupacaoPercentual = Math.round((estacionamento.vagasOcupadas / estacionamento.capacidade) * 100)
 
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{estacionamento.nome}</CardTitle>
-          <Badge
-            className={
-              ocupacaoPercentual > 90
-                ? "bg-red-100 text-red-800 hover:bg-red-100"
-                : ocupacaoPercentual > 70
-                  ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                  : "bg-green-100 text-green-800 hover:bg-green-100"
-            }
-            variant="outline"
-          >
-            {ocupacaoPercentual}% Ocupado
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Ocupação</span>
-            <span>
-              {estacionamento.vagasOcupadas} de {estacionamento.capacidade} vagas
-            </span>
-          </div>
-          <Progress
-            value={ocupacaoPercentual}
-            className="h-2"
-            indicatorClassName={
-              ocupacaoPercentual > 90 ? "bg-red-500" : ocupacaoPercentual > 70 ? "bg-amber-500" : "bg-green-500"
-            }
-          />
-        </div>
+  const getOcupacaoColor = (percentual: number) => {
+    if (percentual >= 90) return "text-red-600"
+    if (percentual >= 70) return "text-amber-600"
+    return "text-green-600"
+  }
 
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-muted p-2">
-            <Car className="h-4 w-4 mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">Disponíveis</p>
-            <p className="font-medium">{estacionamento.vagasDisponiveis}</p>
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-primary" />
+          {estacionamento.nome}
+        </CardTitle>
+        <CardDescription>Capacidade total: {estacionamento.capacidade} vagas</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Ocupação</span>
+              <span className={`font-medium ${getOcupacaoColor(ocupacaoPercentual)}`}>{ocupacaoPercentual}%</span>
+            </div>
+            <Progress value={ocupacaoPercentual} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{estacionamento.vagasOcupadas} ocupadas</span>
+              <span>{estacionamento.vagasDisponiveis} disponíveis</span>
+            </div>
           </div>
-          <div className="rounded-lg bg-muted p-2">
-            <Accessible className="h-4 w-4 mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">PCD</p>
-            <p className="font-medium">{estacionamento.vagasPCD}</p>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50">
+              <Car className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="font-medium text-green-800">{estacionamento.vagasDisponiveis}</p>
+                <p className="text-green-600 text-xs">Disponíveis</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-red-50">
+              <Car className="h-4 w-4 text-red-600" />
+              <div>
+                <p className="font-medium text-red-800">{estacionamento.vagasOcupadas}</p>
+                <p className="text-red-600 text-xs">Ocupadas</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg bg-muted p-2">
-            <Badge className="h-4 w-4 mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground">Convidados</p>
-            <p className="font-medium">{estacionamento.vagasConvidados}</p>
+
+          <div className="flex justify-between items-center text-sm p-2 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-1">
+              <Wheelchair className="h-4 w-4 text-blue-600" />
+              <span>
+                PCD: <span className="font-medium">{estacionamento.vagasPCD}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4 text-purple-600" />
+              <span>
+                Convidados: <span className="font-medium">{estacionamento.vagasConvidados}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2 border-t">
+            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+              <Eye className="h-4 w-4 mr-1" />
+              Visualizar
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+              <Settings className="h-4 w-4 mr-1" />
+              Gerenciar
+            </Button>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
-        <Link href={`/admin/estacionamento/${estacionamento.id}`}>
-          <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-white">
-            Detalhes
-          </Button>
-        </Link>
-        <Link href={`/admin/estacionamento/${estacionamento.id}/configurar`}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-secondary text-secondary hover:bg-secondary hover:text-white"
-          >
-            <Settings className="h-4 w-4 mr-1" /> Configurar
-          </Button>
-        </Link>
-      </CardFooter>
     </Card>
   )
 }

@@ -422,8 +422,8 @@ export default function Home() {
               <h4 className="text-sm font-medium mb-4">Contato</h4>
               <ul className="space-y-2 text-sm">
                 <li className="text-muted-foreground">contato@estacioneja.com.br</li>
-                <li className="text-muted-foreground">(11) 4002-8922</li>
-                <li className="text-muted-foreground">São Paulo, SP - Brasil</li>
+                <li className="text-muted-foreground">(67) 4002-8922</li>
+                <li className="text-muted-foreground">Navirai, Ms - Brasil</li>
               </ul>
             </div>
           </div>

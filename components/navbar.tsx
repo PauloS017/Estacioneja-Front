@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Car, Menu } from "lucide-react"
+import { Car, Menu, type LucideIcon } from "lucide-react" // Importe LucideIcon para tipagem
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState, useEffect } from "react"
@@ -16,6 +16,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Bell, Building2, User, Settings, LogOut, Calendar, BarChart3, FileText, Star } from "lucide-react"
+import { cn } from "@/lib/utils" // Importar cn para classes condicionais
+
+// Definição de tipo para os itens de navegação
+interface NavItem {
+  href: string
+  label: string
+  icon?: LucideIcon // O ícone é opcional e do tipo LucideIcon
+}
 
 const navLinks = [
   { name: "Página Inicial", href: "/" },
@@ -23,6 +31,7 @@ const navLinks = [
   { name: "Sobre Nós", href: "/sobre" },
   { name: "Avaliação", href: "/avaliacao" },
   { name: "FAQ", href: "/faq" },
+
 ]
 
 export function Navbar() {
@@ -34,30 +43,28 @@ export function Navbar() {
   const isAdmin = pathname.startsWith("/admin")
   const isMotorista = pathname.startsWith("/motorista")
   const isLoggedIn = isAdmin || isMotorista
-  const isHomePage = pathname === "/"
+  // A Navbar da página inicial e das páginas públicas terão o mesmo layout
+  const shouldUsePublicLayout = navLinks.some((link) => {
+    if (link.href === "/") return pathname === "/"
+    if (link.href.startsWith("/#")) return pathname === "/" // Anchor links are on homepage
+    return pathname.startsWith(link.href)
+  })
 
-  const adminNavItems = [
+  const adminNavItems: NavItem[] = [
     { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
     { href: "/admin/cadastrar-estacionamento", label: "Cadastrar Estacionamento", icon: Building2 },
     { href: "/admin/relatorios", label: "Relatórios", icon: FileText },
   ]
 
-  const motoristaNavItems = [
+  const motoristaNavItems: NavItem[] = [
     { href: "/motorista/dashboard", label: "Meu Painel", icon: User },
     { href: "/motorista/agendar-vaga", label: "Agendar Vaga", icon: Calendar },
     { href: "/motorista/cadastrar-veiculo", label: "Cadastrar Veículo", icon: Car },
     { href: "/avaliacao", label: "Avaliações", icon: Star },
   ]
 
-  const publicNavItems = [
-    { href: "/", label: "Início" },
-    { href: "/sobre", label: "Sobre" },
-    { href: "/#planos", label: "Planos" },
-    { href: "/avaliacao", label: "Avaliações" },
-    { href: "/faq", label: "FAQ" }, // Adicionado o link para FAQ
-  ]
-
-  const currentNavItems = isAdmin ? adminNavItems : isMotorista ? motoristaNavItems : publicNavItems
+  // currentNavItems agora usa navLinks para o layout público
+  const currentNavItems: NavItem[] = isAdmin ? adminNavItems : isMotorista ? motoristaNavItems : navLinks
 
   const getUserInfo = () => {
     if (isAdmin) {
@@ -82,10 +89,12 @@ export function Navbar() {
 
   // Atualiza o link ativo com base no pathname atual
   useEffect(() => {
-    // Verifica se o pathname atual corresponde a algum dos links
     const matchingLink = navLinks.find((link) => {
       if (link.href === "/") {
         return pathname === "/"
+      }
+      if (link.href.startsWith("/#")) {
+        return pathname === "/" && window.location.hash === link.href.substring(1)
       }
       return pathname.startsWith(link.href)
     })
@@ -96,116 +105,99 @@ export function Navbar() {
     }
   }, [pathname])
 
-  // Layout especial para página inicial
-  if (isHomePage) {
+  // Layout especial para páginas públicas
+  if (shouldUsePublicLayout) {
     return (
-      <header className="sticky top-0 z-50 w-full bg-gray-900 text-white">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Car className="h-4 w-4" />
-            </div>
-            <span className="font-bold text-xl">EstacioneJá</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 flex-1 justify-center">
+          <div className="flex items-center gap-2">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon" aria-label="Menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[240px] sm:w-[300px] bg-background text-foreground">
+                <div className="flex items-center gap-2 pb-4">
+                  <Car className="h-6 w-6 text-primary" />
+                  <span className="font-bold text-lg text-foreground">EstacioneJá</span>
+                </div>
+                <nav className="flex flex-col gap-2">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent",
+                        activeLink === link.href
+                          ? "bg-accent font-medium text-accent-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <Link href="/" className="flex items-center gap-2">
+              <Car className="h-6 w-6 text-primary" />
+              <span className="font-bold text-xl hidden md:inline-block text-foreground">EstacioneJá</span>
+            </Link>
+          </div>
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === link.href ? "text-primary" : "text-gray-300"
-                }`}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  activeLink === link.href ? "text-primary" : "text-muted-foreground",
+                )}
               >
                 {link.name}
               </Link>
             ))}
           </nav>
-
-          {/* Buttons and Mobile Menu */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center space-x-3">
-              <Link href="/login">
-                <Button
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-white bg-transparent"
-                >
-                  Entrar
-                </Button>
-              </Link>
-              <Link href="/cadastrar">
-                <Button className="bg-secondary hover:bg-secondary/90 text-white">Cadastrar</Button>
-              </Link>
-            </div>
-
-            {/* Mobile Menu */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-gray-800">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gray-900 text-white border-gray-800">
-                <div className="flex flex-col space-y-4 mt-4">
-                  <nav className="flex flex-col space-y-2">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-800 ${
-                          pathname === link.href ? "bg-primary text-white" : "text-gray-300 hover:text-white"
-                        }`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {link.name}
-                      </Link>
-                    ))}
-                  </nav>
-
-                  <div className="flex flex-col space-y-2 pt-4 border-t border-gray-800">
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full border-primary text-primary hover:bg-primary hover:text-white bg-transparent"
-                      >
-                        Entrar
-                      </Button>
-                    </Link>
-                    <Link href="/cadastrar" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full bg-secondary hover:bg-secondary/90 text-white">Cadastrar</Button>
-                    </Link>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+          <div className="flex items-center gap-2">
+            <Link href="/login">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex border-primary text-primary hover:bg-primary hover:text-white bg-transparent"
+              >
+                Entrar
+              </Button>
+            </Link>
+            <Link href="/cadastrar">
+              <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-white">
+                Cadastrar
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
     )
   }
 
-  // Layout padrão para outras páginas
+  // Layout padrão para outras páginas (admin/motorista)
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        {/* Logo (agora um item flex separado) */}
+        {/* Logo */}
         <Link
           href={isLoggedIn ? (isAdmin ? "/admin/dashboard" : "/motorista/dashboard") : "/"}
           className="flex items-center space-x-2"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Car className="h-4 w-4" />
-          </div>
+          <Car className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">EstacioneJá</span>
         </Link>
 
         {/* Desktop Navigation (centralizada) */}
-        <nav className="hidden md:flex items-center space-x-6 flex-1 justify-center">
+        <nav className="hidden md:flex items-center space-x-8 flex-1 justify-center">
           {currentNavItems.map((item) => {
-            const Icon = "icon" in item ? item.icon : null
+            const IconComponent = item.icon // Renomeado para evitar conflito e clareza
             return (
               <Link
                 key={item.href}
@@ -214,7 +206,7 @@ export function Navbar() {
                   pathname === item.href ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                {Icon && <Icon className="h-4 w-4" />}
+                {IconComponent && <IconComponent className="h-4 w-4" />}
                 {item.label}
               </Link>
             )
@@ -273,16 +265,17 @@ export function Navbar() {
             </>
           )}
 
-          {!isLoggedIn && !isHomePage && (
-            <div className="hidden md:flex items-center space-x-2">
-              <Link href="/login">
-                <Button variant="ghost">Entrar</Button>
-              </Link>
-              <Link href="/cadastrar">
-                <Button>Cadastrar</Button>
-              </Link>
-            </div>
-          )}
+          {!isLoggedIn &&
+            !shouldUsePublicLayout && ( // Ajustado para não mostrar botões de login/cadastro se for layout público
+              <div className="hidden md:flex items-center space-x-2">
+                <Link href="/login">
+                  <Button variant="ghost">Entrar</Button>
+                </Link>
+                <Link href="/cadastrar">
+                  <Button>Cadastrar</Button>
+                </Link>
+              </div>
+            )}
 
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -312,7 +305,7 @@ export function Navbar() {
 
                 <nav className="flex flex-col space-y-2">
                   {currentNavItems.map((item) => {
-                    const Icon = "icon" in item ? item.icon : null
+                    const IconComponent = item.icon
                     return (
                       <Link
                         key={item.href}
@@ -324,25 +317,26 @@ export function Navbar() {
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
-                        {Icon && <Icon className="h-4 w-4" />}
+                        {IconComponent && <IconComponent className="h-4 w-4" />}
                         {item.label}
                       </Link>
                     )
                   })}
                 </nav>
 
-                {!isLoggedIn && !isHomePage && (
-                  <div className="flex flex-col space-y-2 pt-4 border-t">
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        Entrar
-                      </Button>
-                    </Link>
-                    <Link href="/cadastrar" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full">Cadastrar</Button>
-                    </Link>
-                  </div>
-                )}
+                {!isLoggedIn &&
+                  !shouldUsePublicLayout && ( // Ajustado para não mostrar botões de login/cadastro se for layout público
+                    <div className="flex flex-col space-y-2 pt-4 border-t">
+                      <Link href="/login" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start">
+                          Entrar
+                        </Button>
+                      </Link>
+                      <Link href="/cadastrar" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full">Cadastrar</Button>
+                      </Link>
+                    </div>
+                  )}
 
                 {isLoggedIn && (
                   <div className="flex flex-col space-y-2 pt-4 border-t">

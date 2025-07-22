@@ -26,11 +26,11 @@ interface NavItem {
 }
 
 const navLinks = [
-  { name: "Página Inicial", href: "/" },
-  { name: "Planos", href: "/#planos" }, // Alterado para âncora
-  { name: "Sobre Nós", href: "/sobre" },
-  { name: "Avaliação", href: "/avaliacao" },
-  { name: "FAQ", href: "/faq" },
+  { label: "Página Inicial", href: "/" },
+  { label: "Planos", href: "/#planos" }, // Alterado para âncora
+  { label: "Sobre Nós", href: "/sobre" },
+  { label: "Avaliação", href: "/avaliacao" },
+  { label: "FAQ", href: "/faq" },
 
 ]
 
@@ -135,7 +135,7 @@ export function Navbar() {
                           : "text-muted-foreground",
                       )}
                     >
-                      {link.name}
+                      {link.label}
                     </Link>
                   ))}
                 </nav>
@@ -156,7 +156,7 @@ export function Navbar() {
                   activeLink === link.href ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                {link.name}
+                {link.label}
               </Link>
             ))}
           </nav>
@@ -202,9 +202,8 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.href ? "text-primary" : "text-muted-foreground"
-                }`}
+                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${pathname === item.href ? "text-primary" : "text-muted-foreground"
+                  }`}
               >
                 {IconComponent && <IconComponent className="h-4 w-4" />}
                 {item.label}
@@ -310,11 +309,10 @@ export function Navbar() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent ${
-                          pathname === item.href
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent ${pathname === item.href
+                          ? "bg-accent text-accent-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                          }`}
                         onClick={() => setIsOpen(false)}
                       >
                         {IconComponent && <IconComponent className="h-4 w-4" />}

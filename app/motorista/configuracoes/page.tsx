@@ -179,9 +179,13 @@ export default function MotoristaConfiguracoesPage() {
                                 </div>
                                 <div className="space-y-2 pt-4">
                                     <Label htmlFor="change-password">Alterar Senha</Label>
-                                    <Button variant="outline" className="w-full justify-start bg-transparent">
-                                        <Lock className="h-4 w-4 mr-2" /> Alterar Senha
-                                    </Button>
+                                    <Link href="/motorista/configuracoes/alteraSenha">
+                                        {" "}
+                                        {/* Adicionado o Link aqui */}
+                                        <Button variant="outline" className="w-full justify-start bg-transparent">
+                                            <Lock className="h-4 w-4 mr-2" /> Alterar Senha
+                                        </Button>
+                                    </Link>
                                     <p className="text-xs text-muted-foreground">
                                         Você será redirecionado para uma página segura para alterar sua senha.
                                     </p>

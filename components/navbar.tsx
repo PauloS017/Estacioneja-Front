@@ -61,6 +61,7 @@ export function Navbar() {
     { href: "/motorista/agendar-vaga", label: "Agendar Vaga", icon: Calendar },
     { href: "/motorista/cadastrar-veiculo", label: "Cadastrar Veículo", icon: Car },
     { href: "/avaliacao", label: "Avaliações", icon: Star },
+
   ]
 
   // currentNavItems agora usa navLinks para o layout público
@@ -247,7 +248,7 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link
-                      href={isAdmin ? "/admin/configuracoes" : "/motorista/perfil"}
+                      href={isAdmin ? "/admin/configuracoes" : "/motorista/configuracoes"}
                       className="flex items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
@@ -257,7 +258,7 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => {
                     localStorage.removeItem("token");
-                    window.location.href = "/login"; 
+                    window.location.href = "/login";
                   }}
                     className="flex items-center gap-2 text-red-600">
                     <LogOut className="h-4 w-4" />

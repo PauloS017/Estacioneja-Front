@@ -255,7 +255,11 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                  <DropdownMenuItem onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login"; 
+                  }}
+                    className="flex items-center gap-2 text-red-600">
                     <LogOut className="h-4 w-4" />
                     Sair
                   </DropdownMenuItem>

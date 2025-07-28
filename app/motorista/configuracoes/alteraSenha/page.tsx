@@ -51,61 +51,63 @@ export default function AlterarSenhaPage() {
     }
 
     return (
-        <div className="container flex items-center justify-center py-10 md:py-20">
-            <Card className="w-full max-w-lg">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">Alterar Senha</CardTitle>
-                    <CardDescription>Preencha os campos abaixo para atualizar sua senha</CardDescription>
-                </CardHeader>
-                <form onSubmit={handleSubmit}>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="currentPassword">Senha Atual</Label>
-                            <Input
-                                id="currentPassword"
-                                name="currentPassword"
-                                type="password"
-                                placeholder="Sua senha atual"
-                                value={formData.currentPassword}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="newPassword">Nova Senha</Label>
-                            <Input
-                                id="newPassword"
-                                name="newPassword"
-                                type="password"
-                                placeholder="Sua nova senha"
-                                value={formData.newPassword}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
-                            <Input
-                                id="confirmNewPassword"
-                                name="confirmNewPassword"
-                                type="password"
-                                placeholder="Confirme sua nova senha"
-                                value={formData.confirmNewPassword}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                        <Button variant="outline" onClick={() => router.back()} type="button">
-                            Cancelar
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Alterando..." : "Alterar Senha"}
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+        <div className="w-full bg-gradient-to-b from-primary/10 to-background">
+            <div className="container flex items-center justify-center py-10 md:py-20">
+                <Card className="w-full max-w-lg">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold">Alterar Senha</CardTitle>
+                        <CardDescription>Preencha os campos abaixo para atualizar sua senha</CardDescription>
+                    </CardHeader>
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="currentPassword">Senha Atual</Label>
+                                <Input
+                                    id="currentPassword"
+                                    name="currentPassword"
+                                    type="password"
+                                    placeholder="Sua senha atual"
+                                    value={formData.currentPassword}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="newPassword">Nova Senha</Label>
+                                <Input
+                                    id="newPassword"
+                                    name="newPassword"
+                                    type="password"
+                                    placeholder="Sua nova senha"
+                                    value={formData.newPassword}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                                <Input
+                                    id="confirmNewPassword"
+                                    name="confirmNewPassword"
+                                    type="password"
+                                    placeholder="Confirme sua nova senha"
+                                    value={formData.confirmNewPassword}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between">
+                            <Button variant="outline" onClick={() => router.back()} type="button">
+                                Cancelar
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Alterando..." : "Alterar Senha"}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
+            </div>
         </div>
     )
 }

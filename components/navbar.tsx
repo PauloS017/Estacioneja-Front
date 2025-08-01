@@ -142,9 +142,10 @@ export function Navbar() {
                 </nav>
               </SheetContent>
             </Sheet>
-            <Link href="/" className="flex items-center gap-2">
-              <Car className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl hidden md:inline-block text-foreground">EstacioneJá</span>
+
+            { /* teste da logo para ver como que fica*/}
+            <Link href="/" className="flex items-center gap-2 ">
+              <img src="/LogoEstacioneJa.svg" alt="Logo" className="h-12 w-auto pl-10" />
             </Link>
           </div>
           <nav className="hidden lg:flex items-center gap-6">

@@ -348,10 +348,12 @@ export default function MotoristasDashboardPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                      <Settings className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
+                    <Link href="/motorista/Editar-veiculo/">
+                      <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                        <Settings className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

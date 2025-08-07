@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { User, Car, Bell, Lock, Plus, Settings, Mail, Phone } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DeleteButton } from "@/components/ui/delete-button"
 
 // Dados simulados de veículos (reutilizando do dashboard do motorista)
 const veiculos = [
@@ -229,19 +230,23 @@ export default function MotoristaConfiguracoesPage() {
                                                 <span className="text-sm font-medium capitalize">{veiculo.tipo}</span>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2 mt-4">
-                                            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                                                <Settings className="h-4 w-4 mr-1" />
-                                                Editar
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 bg-transparent"
-                                            >
-                                                <Lock className="h-4 w-4 mr-1" />
-                                                Remover
-                                            </Button>
+                                        <div className="flex gap-2 mt-4 w-full">
+                                            <div className="flex-1">
+                                                <Link href="/motorista/Editar-veiculo" className="block h-full">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="w-full h-full bg-transparent"
+                                                    >
+                                                        <Settings className="h-4 w-4 mr-1" />
+                                                        Editar
+                                                    </Button>
+                                                </Link>
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <DeleteButton />
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>

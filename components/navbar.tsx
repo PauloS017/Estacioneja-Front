@@ -145,7 +145,17 @@ export function Navbar() {
 
             { /* teste da logo para ver como que fica*/}
             <Link href="/" className="flex items-center gap-2 ">
-              <img src="/LogoEstacioneJa.svg" alt="Logo" className="h-12 w-auto pl-10" />
+              <img
+                src="/Logo1.svg"
+                alt="Logo"
+                className="block dark:hidden h-12 w-auto pl-10"
+              />
+              
+              <img
+                src="/Logo2.svg"
+                alt="Logo"
+                className="hidden dark:block h-12 w-auto pl-10"
+              />
             </Link>
           </div>
           <nav className="hidden lg:flex items-center gap-6">

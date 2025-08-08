@@ -16,11 +16,42 @@ import { useToast } from "@/components/ui/use-toast"
 import { FileUpload } from "@/components/file-upload"
 import { Clock, MapPin, Car, ShipWheelIcon as Wheelchair, Users, AlertCircle } from "lucide-react"
 
+interface InfoCep {
+  localidade?: string
+  uf?: string
+  bairro?: string
+  logradouro?: string
+  estado?: string
+  // adicione outros campos conforme necessário
+}
+
 export default function CadastrarEstacionamentoPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("informacoes")
+
+  const [cep, setCep] = useState("")
+  const [info, setInfo] = useState<InfoCep>({})
+
+  const handleBlur = async (ceps: string) => {
+
+    ceps = ceps.replace(/\D/g, "");
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${ceps}/json/`);
+
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`);
+      }
+      const data = await response.json();
+
+      setInfo(data);
+    } catch (error) {
+
+    }
+  };
+
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -52,7 +83,7 @@ export default function CadastrarEstacionamentoPage() {
           Voltar
         </Button>
       </div>
-  
+
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-1 md:grid-cols-4 mb-8">
@@ -69,7 +100,7 @@ export default function CadastrarEstacionamentoPage() {
               <AlertCircle className="h-4 w-4" /> Configurações
             </TabsTrigger>
           </TabsList>
-  
+
           <Card>
             <TabsContent value="informacoes">
               <CardHeader>
@@ -87,55 +118,44 @@ export default function CadastrarEstacionamentoPage() {
                     <Input id="codigo" placeholder="Ex: EST-001" required />
                   </div>
                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                 <div className="space-y-2">
                   <Label htmlFor="endereco">Endereço</Label>
-                  <Input id="endereco" placeholder="Rua, número, bairro" required />
+                  <Input id="endereco"
+                    placeholder="Rua, número, bairro"
+                    onChange={(e) => setInfo({ ...info, logradouro: e.target.value })}
+                    required />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="cidade">Cidade</Label>
-                    <Input id="cidade" placeholder="Cidade" required />
+
+                    <Input
+                      id="cidade"
+                      placeholder="Cidade"
+                      value={info.localidade}
+                      onChange={(e) => setInfo({ ...info, localidade: e.target.value })}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="estado">Estado</Label>
-                    <Select required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ac">Acre</SelectItem>
-                        <SelectItem value="al">Alagoas</SelectItem>
-                        <SelectItem value="ap">Amapá</SelectItem>
-                        <SelectItem value="am">Amazonas</SelectItem>
-                        <SelectItem value="ba">Bahia</SelectItem>
-                        <SelectItem value="ce">Ceará</SelectItem>
-                        <SelectItem value="df">Distrito Federal</SelectItem>
-                        <SelectItem value="es">Espírito Santo</SelectItem>
-                        <SelectItem value="go">Goiás</SelectItem>
-                        <SelectItem value="ma">Maranhão</SelectItem>
-                        <SelectItem value="mt">Mato Grosso</SelectItem>
-                        <SelectItem value="ms">Mato Grosso do Sul</SelectItem>
-                        <SelectItem value="mg">Minas Gerais</SelectItem>
-                        <SelectItem value="pa">Pará</SelectItem>
-                        <SelectItem value="pb">Paraíba</SelectItem>
-                        <SelectItem value="pr">Paraná</SelectItem>
-                        <SelectItem value="pe">Pernambuco</SelectItem>
-                        <SelectItem value="pi">Piauí</SelectItem>
-                        <SelectItem value="rj">Rio de Janeiro</SelectItem>
-                        <SelectItem value="rn">Rio Grande do Norte</SelectItem>
-                        <SelectItem value="rs">Rio Grande do Sul</SelectItem>
-                        <SelectItem value="ro">Rondônia</SelectItem>
-                        <SelectItem value="rr">Roraima</SelectItem>
-                        <SelectItem value="sc">Santa Catarina</SelectItem>
-                        <SelectItem value="sp">São Paulo</SelectItem>
-                        <SelectItem value="se">Sergipe</SelectItem>
-                        <SelectItem value="to">Tocantins</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input id="estado"
+                      placeholder="Estado"
+                      value={info.estado}
+                      onChange={(e) => setInfo({ ...info, estado: e.target.value })}
+                      required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cep">CEP</Label>
-                    <Input id="cep" placeholder="00000-000" required />
+                    <Input
+                      id="cep"
+                      placeholder="00000-000"
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
+                      onBlur={(e) => handleBlur(e.target.value)}
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -315,20 +335,20 @@ export default function CadastrarEstacionamentoPage() {
                     Permitir reservas antecipadas
                   </Label>
                   <Switch id="reservas-antecipadas" defaultChecked />
-</div>
-</CardContent>
-<CardFooter className="flex justify-between">
-  <Button variant="outline" type="button" onClick={() => setActiveTab("horarios")}>
-    Anterior
-  </Button>
-  <Button type="submit" disabled={isLoading}>
-    {isLoading ? "Salvando..." : "Salvar"}
-  </Button>
-</CardFooter>
-</TabsContent>
-</Card>
-</Tabs>
-</form>
-</div>
-)
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button variant="outline" type="button" onClick={() => setActiveTab("horarios")}>
+                  Anterior
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Salvando..." : "Salvar"}
+                </Button>
+              </CardFooter>
+            </TabsContent>
+          </Card>
+        </Tabs>
+      </form>
+    </div>
+  )
 }

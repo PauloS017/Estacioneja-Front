@@ -81,16 +81,6 @@ export function EstacionamentoCard({ estacionamento }: EstacionamentoCardProps) 
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2 border-t">
-            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-              <Eye className="h-4 w-4 mr-1" />
-              Visualizar
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-              <Settings className="h-4 w-4 mr-1" />
-              Gerenciar
-            </Button>
-          </div>
         </div>
       </CardContent>
     </Card>

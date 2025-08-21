@@ -129,12 +129,6 @@ export default function AdminDashboardPage() {
               <span>Relatórios</span>
             </Button>
           </Link>
-          <Link href="/admin/configuracoes">
-            <Button className="flex items-center gap-2" variant="outline">
-              <Settings className="h-4 w-4" />
-              <span>Configurações</span>
-            </Button>
-          </Link>
         </div>
       </div>
 

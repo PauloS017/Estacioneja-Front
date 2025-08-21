@@ -161,17 +161,6 @@ export default function MotoristasDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Tempo Médio</CardTitle>
-            <CardDescription>Duração média das reservas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-primary">{estatisticas.tempoMedioUso}</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium">Veículos</CardTitle>
             <CardDescription>Veículos cadastrados</CardDescription>
           </CardHeader>
@@ -251,35 +240,6 @@ export default function MotoristasDashboardPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">{estatisticas.estacionamentoFavorito}</p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-xl">Ações Rápidas</CardTitle>
-                <CardDescription>Acesso rápido às principais funcionalidades</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Link href="/motorista/agendar-vaga">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 bg-transparent">
-                      <Calendar className="h-6 w-6" />
-                      <span>Agendar Nova Vaga</span>
-                    </Button>
-                  </Link>
-                  <Link href="/motorista/cadastrar-veiculo">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 bg-transparent">
-                      <Car className="h-6 w-6" />
-                      <span>Cadastrar Veículo</span>
-                    </Button>
-                  </Link>
-                  <Link href="/avaliacao">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 bg-transparent">
-                      <Star className="h-6 w-6" />
-                      <span>Avaliar Serviço</span>
-                    </Button>
-                  </Link>
                 </div>
               </CardContent>
             </Card>

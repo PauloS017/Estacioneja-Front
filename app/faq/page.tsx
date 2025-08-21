@@ -122,15 +122,15 @@ export default function FAQPage() {
   // Filtra as perguntas com base no termo de pesquisa
   const filteredFAQ = searchTerm
     ? faqData
-        .map((category) => ({
-          ...category,
-          questions: category.questions.filter(
-            (q) =>
-              q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              q.answer.toLowerCase().includes(searchTerm.toLowerCase()),
-          ),
-        }))
-        .filter((category) => category.questions.length > 0)
+      .map((category) => ({
+        ...category,
+        questions: category.questions.filter(
+          (q) =>
+            q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            q.answer.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
+      }))
+      .filter((category) => category.questions.length > 0)
     : faqData
 
   return (
@@ -167,9 +167,8 @@ export default function FAQPage() {
               <Button
                 key={category.category}
                 variant={expandedCategory === category.category ? "default" : "ghost"}
-                className={`w-full justify-start ${
-                  expandedCategory === category.category ? "bg-primary text-white" : ""
-                }`}
+                className={`w-full justify-start ${expandedCategory === category.category ? "bg-primary text-white" : ""
+                  }`}
                 onClick={() => setExpandedCategory(category.category)}
               >
                 {category.category}
@@ -218,19 +217,12 @@ export default function FAQPage() {
           <p className="text-muted-foreground mb-8">
             Entre em contato com nossa equipe de suporte e teremos prazer em ajudar com suas dúvidas.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center">
             <Card>
               <CardContent className="pt-6 text-center">
                 <Mail className="h-8 w-8 mx-auto mb-4 text-primary" />
                 <h3 className="font-medium mb-2">Email</h3>
                 <p className="text-sm text-muted-foreground">suporte@estacioneja.com.br</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <MessageSquare className="h-8 w-8 mx-auto mb-4 text-primary" />
-                <h3 className="font-medium mb-2">Chat ao Vivo</h3>
-                <p className="text-sm text-muted-foreground">Disponível de seg. a sex., 8h às 18h</p>
               </CardContent>
             </Card>
             <Card>

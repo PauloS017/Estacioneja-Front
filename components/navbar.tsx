@@ -59,9 +59,7 @@ export function Navbar() {
   const motoristaNavItems: NavItem[] = [
     { href: "/motorista/dashboard", label: "Meu Painel", icon: User },
     { href: "/motorista/agendar-vaga", label: "Agendar Vaga", icon: Calendar },
-    { href: "/motorista/cadastrar-veiculo", label: "Cadastrar Veículo", icon: Car },
-    { href: "/avaliacao", label: "Avaliações", icon: Star },
-
+    { href: "/motorista/cadastrar-veiculo", label: "Cadastrar Veículo", icon: Car }
   ]
 
   // currentNavItems agora usa navLinks para o layout público

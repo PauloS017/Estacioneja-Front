@@ -339,32 +339,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="w-full py-12 md:py-24 bg-primary text-white">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Pronto para começar?</h2>
-              <p className="max-w-[600px] md:text-xl/relaxed">
-                Crie sua conta agora e comece a aproveitar todos os benefícios do EstacioneJá
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Link href="/cadastrar">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                  Criar Conta
-                </Button>
-              </Link>
-              <Link href="/sobre">
-                <Button size="lg" className="bg-white text-secondary hover:bg-white/90">
-                  Saiba Mais
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="w-full py-6 bg-background border-t">
         <div className="container px-4 md:px-6">

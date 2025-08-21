@@ -118,11 +118,12 @@ export default function CadastrarEstacionamentoPage() {
                     <Input id="codigo" placeholder="Ex: EST-001" required />
                   </div>
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                 <div className="space-y-2">
                   <Label htmlFor="endereco">Endereço</Label>
                   <Input id="endereco"
                     placeholder="Rua, número, bairro"
+                    value={info.logradouro}
                     onChange={(e) => setInfo({ ...info, logradouro: e.target.value })}
                     required />
                 </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { Calendar, Car, MapPin, Plus, Settings, Star } from "lucide-react"
 import { ReservaCard } from "@/components/reserva-card"
 import { useToast } from "@/components/ui/use-toast"
+import { Veiculo } from "@/models/veiculo"
 
 // Dados simulados
 const reservasAtivas = [
@@ -72,25 +73,6 @@ const historicoReservas = [
   },
 ]
 
-const veiculos = [
-  {
-    id: "1",
-    placa: "ABC-1234",
-    modelo: "Honda Civic",
-    ano: "2022",
-    cor: "Preto",
-    tipo: "carro",
-  },
-  {
-    id: "2",
-    placa: "XYZ-5678",
-    modelo: "Toyota Corolla",
-    ano: "2021",
-    cor: "Branco",
-    tipo: "carro",
-  },
-]
-
 const estatisticas = {
   totalReservas: 15,
   reservasAtivas: reservasAtivas.length,
@@ -102,6 +84,26 @@ const estatisticas = {
 export default function MotoristasDashboardPage() {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("visao-geral")
+  const [veiculos, setVeiculos] = useState<Veiculo[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchVeiculos() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/veiculo`, {
+          cache: "no-store",
+        })
+        const data = await response.json()
+        setVeiculos(data)
+      } catch (error) {
+        // Trate o erro conforme necessário
+        setVeiculos([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchVeiculos()
+  }, [])
 
   const handleCancelarReserva = (reservaId: string) => {
     toast({

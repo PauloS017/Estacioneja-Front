@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useActionState, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,26 +9,34 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { FileUpload } from "@/components/file-upload"
+import { criarVeiculo, VeiculoFormState } from "@/actions/veiculo-action"
 
 export default function CadastrarVeiculoPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [placa, setPlaca] = useState("")
+  const [erro, setErro] = useState("")
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setIsLoading(true)
-
-    // Simulação de cadastro
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Veículo cadastrado com sucesso",
-        description: "Seu veículo foi adicionado à sua conta.",
-      })
-      router.push("/motorista/dashboard")
-    }, 1500)
+  function validarPlaca(valor: string) {
+    const regex = /^[A-Z]{3}-\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/
+    if (!regex.test(valor.toUpperCase())) {
+      setErro("Placa inválida. Use formatos: ABC-1234 ou ABC1D23")
+    } else {
+      setErro("")
+    }
+    setPlaca(valor.toUpperCase())
   }
+
+  const initialState: VeiculoFormState = {
+    placa: "",
+    modelo: "",
+    ano: 0,
+    cor: "",
+    renavam: "",
+  }
+
+  const [state, formAction, isPending] = useActionState(criarVeiculo, initialState)
 
   return (
     <div className="container flex items-center justify-center py-10 md:py-20">
@@ -39,16 +45,25 @@ export default function CadastrarVeiculoPage() {
           <CardTitle className="text-2xl font-bold">Cadastrar Veículo</CardTitle>
           <CardDescription>Preencha os dados do seu veículo para cadastrá-lo no sistema</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form action={formAction}>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="placa">Placa do Veículo</Label>
-                <Input id="placa" placeholder="ABC-1234" required />
+                <Input
+                  id="placa"
+                  name="placa"
+                  value={placa}
+                  maxLength={8}
+                  onChange={(e) => validarPlaca(e.target.value)}
+                  placeholder="ABC-1234"
+                  required
+                />
+                {erro && <p className="text-red-500 text-sm">{erro}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo de Veículo</Label>
-                <Select required>
+                <Select name="tipo" required>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -64,21 +79,21 @@ export default function CadastrarVeiculoPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="modelo">Modelo</Label>
-                <Input id="modelo" placeholder="Ex: Honda Civic" required />
+                <Input id="modelo" name="modelo" placeholder="Ex: Honda Civic" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ano">Ano</Label>
-                <Input id="ano" placeholder="Ex: 2022" required />
+                <Input id="ano" name="ano" placeholder="Ex: 2022" required />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cor">Cor</Label>
-                <Input id="cor" placeholder="Ex: Preto" required />
+                <Input id="cor" name="cor" placeholder="Ex: Preto" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="renavam">Renavam</Label>
-                <Input id="renavam" placeholder="Número do Renavam" required />
+                <Input id="renavam" name="renavam" placeholder="Número do Renavam" required />
               </div>
             </div>
             <div className="space-y-2">
@@ -88,11 +103,11 @@ export default function CadastrarVeiculoPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="observacoes">Observações (opcional)</Label>
-              <Input id="observacoes" placeholder="Informações adicionais sobre o veículo" />
+              <Input id="observacoes" name="observacoes" placeholder="Informações adicionais sobre o veículo" />
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full">
               {isLoading ? "Cadastrando..." : "Cadastrar Veículo"}
             </Button>
           </CardFooter>

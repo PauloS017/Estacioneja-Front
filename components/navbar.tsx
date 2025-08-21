@@ -150,7 +150,7 @@ export function Navbar() {
                 alt="Logo"
                 className="block dark:hidden h-12 w-auto pl-10"
               />
-              
+
               <img
                 src="/Logo2.svg"
                 alt="Logo"
@@ -355,7 +355,7 @@ export function Navbar() {
                 {isLoggedIn && (
                   <div className="flex flex-col space-y-2 pt-4 border-t">
                     <Link
-                      href={isAdmin ? "/admin/configuracoes" : "/motorista/perfil"}
+                      href={isAdmin ? "/admin/configuracoes" : "/motorista/configuracoes"}
                       onClick={() => setIsOpen(false)}
                       className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
                     >

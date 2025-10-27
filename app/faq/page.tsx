@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, Mail, MessageSquare, HelpCircle } from "lucide-react"
+import { Search, Mail, HelpCircle } from "lucide-react"
 
 // Dados das perguntas frequentes
 const faqData = [
@@ -134,7 +134,7 @@ export default function FAQPage() {
     : faqData
 
   return (
-    <div className="container py-12">
+    <div className="container mx-auto px-4 md:px-8 lg:px-12 py-12 max-w-7xl">
       <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
         <div className="space-y-2 max-w-[800px]">
           <h1 className="text-3xl font-bold tracking-tighter md:text-4xl">Perguntas Frequentes</h1>
@@ -144,7 +144,6 @@ export default function FAQPage() {
         </div>
       </div>
 
-      {/* Barra de pesquisa */}
       <div className="max-w-2xl mx-auto mb-12">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -157,17 +156,15 @@ export default function FAQPage() {
         </div>
       </div>
 
-      {/* Categorias de FAQ */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Sidebar com categorias */}
-        <div className="md:col-span-1">
-          <div className="space-y-2 sticky top-24">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1">
+          <div className="space-y-2 lg:sticky lg:top-24">
             <h3 className="font-medium mb-4">Categorias</h3>
             {faqData.map((category) => (
               <Button
                 key={category.category}
                 variant={expandedCategory === category.category ? "default" : "ghost"}
-                className={`w-full justify-start ${expandedCategory === category.category ? "bg-primary text-white" : ""
+                className={`w-full justify-start ${expandedCategory === category.category ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""
                   }`}
                 onClick={() => setExpandedCategory(category.category)}
               >
@@ -177,8 +174,7 @@ export default function FAQPage() {
           </div>
         </div>
 
-        {/* Perguntas e respostas */}
-        <div className="md:col-span-3">
+        <div className="lg:col-span-3">
           {filteredFAQ.length > 0 ? (
             filteredFAQ.map((category) => (
               <div
@@ -210,7 +206,6 @@ export default function FAQPage() {
         </div>
       </div>
 
-      {/* Seção "Não encontrou o que procurava?" */}
       <div className="mt-16 bg-muted/50 rounded-lg p-8">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-4">Não encontrou o que procurava?</h2>

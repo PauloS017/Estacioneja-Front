@@ -4,7 +4,7 @@ import { Poppins } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from 'sonner';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -15,7 +15,6 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "EstacioneJá - Sistema de Estacionamento Universitário",
   description: "Gerencie vagas de estacionamento em sua universidade de forma simples e eficiente",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -24,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="flex min-h-screen flex-col">

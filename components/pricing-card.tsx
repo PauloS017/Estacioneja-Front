@@ -23,9 +23,9 @@ export function PricingCard({
   buttonLink,
 }: PricingCardProps) {
   return (
-    <Card className={`pricing-card ${popular ? "border-primary border-2" : ""}`}>
+    <Card className={`pricing-card relative ${popular ? "border-primary border-2" : ""}`}>
       {popular && (
-        <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
+        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
           Mais Popular
         </div>
       )}
@@ -50,7 +50,7 @@ export function PricingCard({
       <CardFooter>
         <Link href={buttonLink} className="w-full">
           <Button
-            className={`w-full ${popular ? "bg-primary hover:bg-primary-700" : "bg-secondary hover:bg-secondary-700"}`}
+            className={`w-full ${popular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"}`}
           >
             {buttonText}
           </Button>

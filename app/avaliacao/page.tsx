@@ -124,7 +124,7 @@ export default function AvaliacaoPage() {
   }
 
   return (
-    <div className="container py-12">
+    <div className="container mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-12">
       <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
         <div className="space-y-2 max-w-[800px]">
           <h1 className="text-3xl font-bold tracking-tighter md:text-4xl">Avaliações e Feedback</h1>
@@ -218,7 +218,7 @@ export default function AvaliacaoPage() {
             <CardFooter>
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-700"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={isSubmitting || rating === 0}
               >
                 {isSubmitting ? "Enviando..." : "Enviar Avaliação"}

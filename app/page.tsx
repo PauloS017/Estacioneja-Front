@@ -115,11 +115,11 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section com Slider */}
       <section className="w-full py-12 md:py-16">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <HeroSlider images={sliderImages} />
           <div className="mt-8 flex flex-col md:flex-row justify-center gap-4">
             <Link href="/login">
-              <Button size="lg" className="bg-primary hover:bg-primary-700 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 Acessar Sistema
               </Button>
             </Link>
@@ -127,7 +127,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-secondary text-secondary hover:bg-secondary hover:text-white"
+                className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground bg-transparent"
               >
                 Criar Conta
               </Button>
@@ -138,19 +138,19 @@ export default function Home() {
 
       {/* Contador de Estatísticas */}
       <section className="w-full py-8 bg-primary/10">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-2">
               <h3 className="text-4xl font-bold text-primary">{count.usuarios.toLocaleString()}</h3>
-              <p className="text-lg font-medium">Usuários Ativos</p>
+              <p className="text-lg font-medium text-foreground">Usuários Ativos</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-4xl font-bold text-primary">{count.reservas.toLocaleString()}</h3>
-              <p className="text-lg font-medium">Reservas Realizadas</p>
+              <p className="text-lg font-medium text-foreground">Reservas Realizadas</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-4xl font-bold text-primary">{count.instituicoes.toLocaleString()}</h3>
-              <p className="text-lg font-medium">Instituições Parceiras</p>
+              <p className="text-lg font-medium text-foreground">Instituições Parceiras</p>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="w-full py-12 md:py-24 bg-background">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-[800px]">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Por que escolher o EstacioneJá?</h2>
@@ -228,7 +228,7 @@ export default function Home() {
 
       {/* Como Funciona */}
       <section className="w-full py-12 md:py-24 bg-muted/50">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-[800px]">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Como Funciona</h2>
@@ -239,7 +239,7 @@ export default function Home() {
           </div>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-8 h-8 bg-primary rounded-br-lg flex items-center justify-center text-white font-bold">
+              <div className="absolute top-0 left-0 w-8 h-8 bg-primary text-primary-foreground rounded-br-lg flex items-center justify-center font-bold">
                 1
               </div>
               <CardContent className="pt-12 pb-8 flex flex-col items-center text-center">
@@ -253,7 +253,7 @@ export default function Home() {
               </CardContent>
             </Card>
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-8 h-8 bg-secondary rounded-br-lg flex items-center justify-center text-white font-bold">
+              <div className="absolute top-0 left-0 w-8 h-8 bg-secondary text-secondary-foreground rounded-br-lg flex items-center justify-center font-bold">
                 2
               </div>
               <CardContent className="pt-12 pb-8 flex flex-col items-center text-center">
@@ -267,7 +267,7 @@ export default function Home() {
               </CardContent>
             </Card>
             <Card className="relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-8 h-8 bg-primary rounded-br-lg flex items-center justify-center text-white font-bold">
+              <div className="absolute top-0 left-0 w-8 h-8 bg-primary text-primary-foreground rounded-br-lg flex items-center justify-center font-bold">
                 3
               </div>
               <CardContent className="pt-12 pb-8 flex flex-col items-center text-center">
@@ -286,7 +286,7 @@ export default function Home() {
 
       {/* Planos e Preços */}
       <section id="planos" className="w-full py-12 md:py-24 bg-background">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-[800px]">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Planos e Preços</h2>
@@ -303,7 +303,7 @@ export default function Home() {
 
       {/* Depoimentos */}
       <section className="w-full py-12 md:py-24 bg-muted/50">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-[800px]">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">O que dizem nossos clientes</h2>
@@ -341,7 +341,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full py-6 bg-background border-t">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
               <div className="flex items-center space-x-2">

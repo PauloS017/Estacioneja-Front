@@ -16,41 +16,11 @@ const navLinks = [
   { label: "Avaliação", href: "/avaliacao" },
 ]
 
-interface NavbarProps {
-  variant?: "default" | "guarita"
-}
-
-export function Navbar({ variant = "default" }: NavbarProps) {
+export function Navbar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  if (variant === "guarita") {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b bg-background">
-        <div className="flex h-16 items-center justify-between px-4 md:px-8">
-
-          <Link href="/usuario/guarita" className="flex items-center gap-4"> { }
-            <img src="/Logo1.svg" alt="EstacioneJá" className="h-10 w-auto" />
-            <div className="hidden md:block">
-              <h1 className="text-lg font-bold text-foreground">Painel de Operador</h1>
-              <p className="text-xs text-muted-foreground">Sistema de Controle de Acesso</p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5 text-[#ff6b00]" />
-              <span className="sr-only">Notificações</span>
-            </Button>
-            <Button size="icon" className="bg-primary hover:bg-primary/90 rounded-full">
-              <User className="h-5 w-5 text-white" />
-              <span className="sr-only">Perfil</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-    )
-  }
+ 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">

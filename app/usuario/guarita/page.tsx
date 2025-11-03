@@ -39,7 +39,7 @@ export default function OperadorPage() {
                 <SheetTrigger asChild>
                     <Button
                         variant="outline"
-                        className="fixed top-[4.5rem] left-4 z-40 bg-white border border-gray-300 gap-2 px-4 shadow-sm hover:bg-gray-50"
+                        className="fixed top-18 left-4 z-40 bg-white border border-gray-300 gap-2 px-4 shadow-sm hover:bg-gray-50"
                     >
                         <Menu className="h-4 w-4" />
                         <span className="text-sm font-medium">Menu</span>

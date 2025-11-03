@@ -28,18 +28,15 @@ export function Navbar({ variant = "default" }: NavbarProps) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-background">
         <div className="flex h-16 items-center justify-between px-4 md:px-8">
-          {/* Logo à esquerda */}
-          <Link href="/usuario/guarita" className="flex items-center gap-2">
+
+          <Link href="/usuario/guarita" className="flex items-center gap-4"> { }
             <img src="/Logo1.svg" alt="EstacioneJá" className="h-10 w-auto" />
+            <div className="hidden md:block">
+              <h1 className="text-lg font-bold text-foreground">Painel de Operador</h1>
+              <p className="text-xs text-muted-foreground">Sistema de Controle de Acesso</p>
+            </div>
           </Link>
 
-          {/* Título centralizado */}
-          <div className="hidden md:block text-black">
-            <h1 className="text-lg font-bold text-foreground">Painel de Operador</h1>
-            <p className="text-xs text-muted-foreground">Sistema de Controle de Acesso</p>
-          </div>
-
-          {/* Ações à direita */}
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5 text-[#ff6b00]" />

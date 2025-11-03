@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
-import { Navbar } from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from 'sonner';
 
@@ -27,7 +26,6 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="flex min-h-screen flex-col">
-            <Navbar />
             <main className="flex-1">{children}</main>
             <Toaster />
           </div>

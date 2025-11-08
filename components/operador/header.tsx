@@ -2,8 +2,8 @@
 
 import { Bell, User, LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
-import { loadCurrentUser, loadNotifications, type Notification } from "../lib/storage"
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
+import { loadCurrentUser, loadNotifications, type Notification } from "../../lib/storage"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
+} from "../ui/dropdown-menu"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card"
 
 export default function Header({ onLogout }: { onLogout?: () => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([])

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Sidebar from "@/components/sidebar"
-import ValidationScreen from "@/components/validation-screen"
-import HistoryScreen from "@/components/history-screen"
-import LoginScreen from "@/components/login-screen"
+import Sidebar from "@/components/operador/sidebar"
+import ValidationScreen from "@/components/operador/validation-screen"
+import HistoryScreen from "@/components/operador/history-screen"
+import LoginScreen from "@/components/operador/login-screen"
 import { loadAccessRecords, loadCurrentUser, clearCurrentUser, type AccessRecord } from "@/lib/storage"
 
 export default function Home() {

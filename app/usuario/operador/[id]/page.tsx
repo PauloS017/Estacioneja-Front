@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import Header from "@/components/header"
+import Header from "@/components/operador/header"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { CheckCircle2, ArrowLeft, Mail, Phone, Car } from "lucide-react"
 import md5 from "md5"

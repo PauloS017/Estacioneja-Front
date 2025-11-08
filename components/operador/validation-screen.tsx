@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import Header from "./header"
 import VisitorModal from "./visitor-modal"
 import { Search } from "lucide-react"
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
 import md5 from "md5"
 import {
     saveAccessRecords,

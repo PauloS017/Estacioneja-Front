@@ -2,8 +2,8 @@
 
 import Header from "./header"
 import { CheckCircle2 } from "lucide-react"
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
-import { Badge } from "./ui/badge"
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
+import { Badge } from "../ui/badge"
 import md5 from "md5"
 import { useRouter } from "next/navigation"
 import type { AccessRecord } from "@/lib/storage"

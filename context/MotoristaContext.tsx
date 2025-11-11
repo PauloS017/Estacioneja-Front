@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+// REMOVIDO: useRouter
 
 // --- 1. DEFINIÇÃO DE TIPOS ---
 interface Vehicle {
@@ -42,11 +42,9 @@ interface Notification {
     read: boolean
 }
 
-// --- 2. INTERFACE DO CONTEXTO ---
+// --- 2. INTERFACE DO CONTEXTO (Simplificada) ---
 interface IMotoristaContext {
-    isLoggedIn: boolean
-    login: (email: string, pass: string) => boolean
-    logout: () => void
+    // REMOVIDO: isLoggedIn, login, logout
     userProfile: UserProfile
     vehicles: Vehicle[]
     notifications: Notification[]
@@ -66,12 +64,11 @@ interface IMotoristaContext {
 
 const MotoristaContext = createContext<IMotoristaContext | null>(null)
 
-// --- 4. O PROVEDOR ---
+// --- 3. O PROVEDOR (Simplificado) ---
 export function MotoristaProvider({ children }: { children: ReactNode }) {
-    const router = useRouter()
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    // REMOVIDO: useRouter, isLoggedIn, setIsLoggedIn, login, logout
 
-    // --- ESTADO DOS DADOS (Movido de motorista/page.tsx) ---
+    // --- ESTADO DOS DADOS (Completo) ---
     const [userProfile, setUserProfile] = useState({
         name: "Larissa Nagoia",
         email: "larissa.nagoia@gmail.com.br",
@@ -91,130 +88,21 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
         { id: 1, message: "Bem vindo ao EstacioneJá, aproveite o software!", timestamp: "Agora", read: false },
     ])
 
-    // 👇 CORREÇÃO AQUI: Preencha este array com os dados
     const [connectedParkings, setConnectedParkings] = useState<Parking[]>([
-        {
-            id: 1,
-            name: "(Naviraí) IFMS - Instituto Federal...",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 45,
-            totalSpots: 200,
-            occupancy: 78,
-            carSpots: 35,
-            bikeSpots: 10,
-            category: "connected",
-        },
-        {
-            id: 2,
-            name: "(001 - Sede) COPASUL - Coope...",
-            address: "R. Hilda, 203",
-            distance: 5.5,
-            status: "Quase Cheio",
-            statusColor: "bg-yellow-400",
-            availableSpots: 12,
-            totalSpots: 80,
-            occupancy: 85,
-            carSpots: 8,
-            bikeSpots: 4,
-            category: "connected",
-        },
-        {
-            id: 3,
-            name: "(015 - Fiação) COPASUL - Coope...",
-            address: "R. Hilda, 203",
-            distance: 3.0,
-            status: "Lotado",
-            statusColor: "bg-red-500",
-            availableSpots: 0,
-            totalSpots: 150,
-            occupancy: 100,
-            carSpots: 0,
-            bikeSpots: 0,
-            category: "connected",
-        },
-        {
-            id: 4,
-            name: "UEMS - Universidade Est...",
-            address: "R. Hilda, 203",
-            distance: 2.0,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 30,
-            totalSpots: 120,
-            occupancy: 75,
-            carSpots: 20,
-            bikeSpots: 10,
-            category: "connected",
-        },
+        { id: 1, name: "(Naviraí) IFMS - Instituto Federal...", address: "R. Hilda, 203", distance: 2.5, status: "Moderado", statusColor: "bg-orange-400", availableSpots: 45, totalSpots: 200, occupancy: 78, carSpots: 35, bikeSpots: 10, category: "connected" },
+        { id: 2, name: "(001 - Sede) COPASUL - Coope...", address: "R. Hilda, 203", distance: 5.5, status: "Quase Cheio", statusColor: "bg-yellow-400", availableSpots: 12, totalSpots: 80, occupancy: 85, carSpots: 8, bikeSpots: 4, category: "connected" },
+        { id: 3, name: "(015 - Fiação) COPASUL - Coope...", address: "R. Hilda, 203", distance: 3.0, status: "Lotado", statusColor: "bg-red-500", availableSpots: 0, totalSpots: 150, occupancy: 100, carSpots: 0, bikeSpots: 0, category: "connected" },
+        { id: 4, name: "UEMS - Universidade Est...", address: "R. Hilda, 203", distance: 2.0, status: "Moderado", statusColor: "bg-orange-400", availableSpots: 30, totalSpots: 120, occupancy: 75, carSpots: 20, bikeSpots: 10, category: "connected" },
     ])
 
-    // 👇 CORREÇÃO AQUI: Preencha este array com os dados
     const [publicParkings, setPublicParkings] = useState<Parking[]>([
-        {
-            id: 5,
-            name: "Shopping Avenida Ce...",
-            address: "R. Hilda, 203",
-            distance: 122.5,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 45,
-            totalSpots: 200,
-            occupancy: 78,
-            carSpots: 35,
-            bikeSpots: 10,
-            isConnected: false,
-            category: "public",
-        },
-        {
-            id: 6,
-            name: "Mercado - Fogo Atac...",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Quase Cheio",
-            statusColor: "bg-yellow-400",
-            availableSpots: 12,
-            totalSpots: 80,
-            occupancy: 85,
-            carSpots: 8,
-            bikeSpots: 4,
-            isConnected: false,
-            category: "public",
-        },
-        {
-            id: 7,
-            name: "IFMS Campus Navirai",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Lotado",
-            statusColor: "bg-red-500",
-            availableSpots: 0,
-            totalSpots: 150,
-            occupancy: 100,
-            carSpots: 0,
-            bikeSpots: 0,
-            isConnected: false,
-            category: "public",
-        },
+        { id: 5, name: "Shopping Avenida Ce...", address: "R. Hilda, 203", distance: 122.5, status: "Moderado", statusColor: "bg-orange-400", availableSpots: 45, totalSpots: 200, occupancy: 78, carSpots: 35, bikeSpots: 10, isConnected: false, category: "public" },
+        { id: 6, name: "Mercado - Fogo Atac...", address: "R. Hilda, 203", distance: 2.5, status: "Quase Cheio", statusColor: "bg-yellow-400", availableSpots: 12, totalSpots: 80, occupancy: 85, carSpots: 8, bikeSpots: 4, isConnected: false, category: "public" },
+        { id: 7, name: "IFMS Campus Navirai", address: "R. Hilda, 203", distance: 2.5, status: "Lotado", statusColor: "bg-red-500", availableSpots: 0, totalSpots: 150, occupancy: 100, carSpots: 0, bikeSpots: 0, isConnected: false, category: "public" },
     ])
 
 
-    // --- FUNÇÕES (AÇÕES) ---
-
-    const login = (email: string, pass: string): boolean => {
-        if (email.toLowerCase() === "larissa.nagoia@gmail.com.br" && pass === "123") {
-            setIsLoggedIn(true)
-            return true
-        }
-        return false
-    }
-
-    const logout = () => {
-        setIsLoggedIn(false)
-        router.push("/login")
-    }
+    // --- FUNÇÕES (AÇÕES) (Completas) ---
 
     const addNotification = (message: string) => {
         const newNotification: Notification = {
@@ -285,9 +173,7 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
 
     // --- 5. O VALOR FORNECIDO ---
     const value = {
-        isLoggedIn,
-        login,
-        logout,
+        // REMOVIDO: isLoggedIn, login, logout
         userProfile,
         vehicles,
         notifications,

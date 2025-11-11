@@ -1,38 +1,47 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import Swal from "sweetalert2"
-import { saveAccessRecords, loadAccessRecords, addNotification, type AccessRecord } from "@/lib/storage"
+import { type AccessRecord } from "@/lib/storage"
+import { useOperador } from "@/context/OperadorContext"
+import { useAuth } from "@/context/AuthContext"
 
 interface VisitorModalProps {
     isOpen: boolean
     onClose: () => void
-    onVisitorAdded: (records: AccessRecord[]) => void
-    currentOperator: string
     initialPlate?: string
 }
 
 export default function VisitorModal({
     isOpen,
     onClose,
-    onVisitorAdded,
-    currentOperator,
     initialPlate = "",
 }: VisitorModalProps) {
+
+    const { addAccessRecord, addNotification } = useOperador()
+    const { currentUser } = useAuth()
+
+    // 1. CORREÇÃO: Adicionei os campos que faltavam ao estado inicial
     const [formData, setFormData] = useState({
         name: "",
         plate: "",
-        vehicle: "",
-        email: "",
-        phone: "",
+        vehicle: "", // Estava faltando
+        email: "",   // Estava faltando
+        phone: "",   // Estava faltando
     })
 
+    // Atualiza a placa e reseta os outros campos quando o modal abre
     useEffect(() => {
-        if (isOpen && initialPlate) {
-            setFormData((prev) => ({ ...prev, plate: initialPlate.toUpperCase() }))
+        if (isOpen) {
+            setFormData({
+                name: "",
+                plate: initialPlate.toUpperCase(),
+                vehicle: "",
+                email: "",
+                phone: "",
+            })
         }
     }, [isOpen, initialPlate])
 
@@ -59,25 +68,18 @@ export default function VisitorModal({
             name: formData.name,
             plate: formData.plate,
             email: formData.email || "Não informado",
-            vehicle: formData.vehicle,
-            phone: formData.phone || "Não informado",
+            vehicle: formData.vehicle, // Campo agora presente
+            phone: formData.phone || "Não informado", // Campo agora presente
             date,
             time,
-            operator: currentOperator,
+            operator: currentUser?.name || "Operador",
             status: "authorized",
             tag: "Visitante",
             entryType: "Entrada",
         }
 
-        const existingRecords = loadAccessRecords()
-        const updatedRecords = [...existingRecords, newRecord]
-        saveAccessRecords(updatedRecords)
-        onVisitorAdded(updatedRecords)
-
-        const nameParts = formData.name.split(" ")
-        const firstName = nameParts[0]
-        const lastName = nameParts[nameParts.length - 1]
-        addNotification(`${firstName} ${lastName} - Usuário Autorizado`)
+        addAccessRecord(newRecord)
+        addNotification(`${formData.name} - Visitante Autorizado`)
 
         Swal.fire({
             icon: "success",
@@ -86,6 +88,7 @@ export default function VisitorModal({
             timer: 2000,
         })
 
+        // Limpa o formulário completo
         setFormData({ name: "", plate: "", vehicle: "", email: "", phone: "" })
         onClose()
     }
@@ -128,6 +131,8 @@ export default function VisitorModal({
                         />
                     </div>
 
+                    {/* --- 2. INÍCIO DA CORREÇÃO --- */}
+                    {/* Estes são os campos que eu tinha "comido" */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Veículo <span className="text-red-500">*</span>
@@ -171,6 +176,8 @@ export default function VisitorModal({
                     </div>
 
                     <p className="text-xs text-gray-500 italic">* Pelo menos um meio de comunicação é obrigatório</p>
+                    {/* --- FIM DA CORREÇÃO --- */}
+
 
                     <div className="flex gap-3 pt-4">
                         <button

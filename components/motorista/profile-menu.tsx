@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { LogOut, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -10,20 +11,25 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useMotorista } from "@/context/MotoristaContext"
+import { getGravatarUrl } from "@/lib/gravatar"
 
-const getGravatarUrl = (email: string) => {
-  const hash = email ? require('crypto').createHash('md5').update(email.trim().toLowerCase()).digest('hex') : '';
-  return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-};
-
+// 👇 A INTERFACE PRECISA ESTAR AQUI
 interface ProfileMenuProps {
-  onNavigate: (screen: "home" | "config" | "register-vehicle" | "parking-detail" | "history") => void
   onLogout: () => void
-  userProfile: any
 }
 
-export default function ProfileMenu({ onNavigate, onLogout, userProfile }: ProfileMenuProps) {
+// 👇 E A PROP PRECISA SER RECEBIDA AQUI
+export default function ProfileMenu({ onLogout }: ProfileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+  const { userProfile } = useMotorista()
+
+  if (!userProfile) {
+    return (
+      <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+    )
+  }
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -47,7 +53,7 @@ export default function ProfileMenu({ onNavigate, onLogout, userProfile }: Profi
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            onNavigate("config")
+            router.push("/usuario/motorista/config")
             setIsOpen(false)
           }}
           className="gap-2 cursor-pointer"

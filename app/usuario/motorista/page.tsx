@@ -1,351 +1,146 @@
 "use client"
 
 import { useState } from "react"
-import Header from "@/components/motorista/header"
-import HomeScreen from "@/components/screens/home-screen"
-import ConfigScreen from "@/components/screens/config-screen"
-import RegisterVehicleScreen from "@/components/screens/register-vehicle-screen"
-import ParkingDetailScreen from "@/components/screens/parking-detail-screen"
-import HistoryScreen from "@/components/screens/history-screen"
-import LoginScreen from "@/components/screens/login-screen"
+import { useRouter } from "next/navigation" // Importe o hook de roteamento
+import { Search } from "lucide-react"
+import UserProfile from "@/components/motorista/user-profile"
+import ParkingCard from "@/components/motorista/parking-card"
+import { useMotorista } from "@/context/MotoristaContext" // Importe o "cérebro"
 
-interface Vehicle {
-    id: number
-    plate: string
-    model: string
-    color: string
-    type: "car" | "bike"
-    isPrincipal: boolean
-}
+// Não precisamos mais de props como 'onNavigate', 'userProfile', etc.
 
-interface Parking {
-    id: number
-    name: string
-    address: string
-    distance: number
-    status: string
-    statusColor: string
-    availableSpots: number
-    totalSpots: number
-    occupancy: number
-    carSpots: number
-    bikeSpots: number
-    isConnected?: boolean
-    category?: "connected" | "public"
-}
+export default function MotoristaHomePage() {
+    const router = useRouter() // Hook para navegação
 
-export default function Home() {
-    const [isLoggedIn, setIsLoggedIn] = useState(true)
-    const [currentScreen, setCurrentScreen] = useState<
-        "home" | "config" | "register-vehicle" | "parking-detail" | "history" | "parking-history"
-    >("home")
-    const [selectedParkingId, setSelectedParkingId] = useState<number | null>(null)
+    // 1. Buscamos todos os dados e funções direto do "cérebro" (Context)
+    const {
+        userProfile,
+        vehicles,
+        connectedParkings,
+        publicParkings,
+        handleConnectParking,
+        handleDisconnectParking,
+    } = useMotorista()
 
-    const [userProfile, setUserProfile] = useState({
-        name: "Larissa Nagoia",
-        email: "larissa.nagoia@gmail.com.br",
-        cpf: "123.456.789-00",
-        phone: "(67) 98765-4321",
-        address: "Rua Exemplo, 123 - Naviraí/MS",
-        avatar: 1,
-    })
+    // 2. O estado do campo de busca é local, o que está correto.
+    const [connectedSearch, setConnectedSearch] = useState("")
+    const [publicSearch, setPublicSearch] = useState("")
 
-    const [vehicles, setVehicles] = useState<Vehicle[]>([
-        {
-            id: 1,
-            plate: "ABC-123",
-            model: "Honda Civic",
-            color: "Preto",
-            type: "car",
-            isPrincipal: true,
-        },
-        {
-            id: 2,
-            plate: "ABD-143",
-            model: "Honda CG 160",
-            color: "Vermelha",
-            type: "bike",
-            isPrincipal: false,
-        },
-        {
-            id: 3,
-            plate: "XYZ-157",
-            model: "Honda CG 160",
-            color: "Preto",
-            type: "bike",
-            isPrincipal: false,
-        },
-    ])
+    const filteredConnected = connectedParkings.filter((p) =>
+        p.name.toLowerCase().includes(connectedSearch.toLowerCase()),
+    )
 
-    const [notifications, setNotifications] = useState<any[]>([
-        {
-            id: 1,
-            message: "Bem vindo ao EstacioneJá, aproveite o software!",
-            timestamp: "Agora",
-            read: false,
-        },
-    ])
+    const filteredPublic = publicParkings.filter((p) =>
+        p.name.toLowerCase().includes(publicSearch.toLowerCase())
+    )
 
-    const [connectedParkings, setConnectedParkings] = useState<Parking[]>([
-        {
-            id: 1,
-            name: "(Naviraí) IFMS - Instituto Federal...",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 45,
-            totalSpots: 200,
-            occupancy: 78,
-            carSpots: 35,
-            bikeSpots: 10,
-            category: "connected",
-        },
-        {
-            id: 2,
-            name: "(001 - Sede) COPASUL - Coope...",
-            address: "R. Hilda, 203",
-            distance: 5.5,
-            status: "Quase Cheio",
-            statusColor: "bg-yellow-400",
-            availableSpots: 12,
-            totalSpots: 80,
-            occupancy: 85,
-            carSpots: 8,
-            bikeSpots: 4,
-            category: "connected",
-        },
-        {
-            id: 3,
-            name: "(015 - Fiação) COPASUL - Coope...",
-            address: "R. Hilda, 203",
-            distance: 3.0,
-            status: "Lotado",
-            statusColor: "bg-red-500",
-            availableSpots: 0,
-            totalSpots: 150,
-            occupancy: 100,
-            carSpots: 0,
-            bikeSpots: 0,
-            category: "connected",
-        },
-        {
-            id: 4,
-            name: "UEMS - Universidade Est...",
-            address: "R. Hilda, 203",
-            distance: 2.0,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 30,
-            totalSpots: 120,
-            occupancy: 75,
-            carSpots: 20,
-            bikeSpots: 10,
-            category: "connected",
-        },
-    ])
-
-    const [publicParkings, setPublicParkings] = useState<Parking[]>([
-        {
-            id: 5,
-            name: "Shopping Avenida Ce...",
-            address: "R. Hilda, 203",
-            distance: 122.5,
-            status: "Moderado",
-            statusColor: "bg-orange-400",
-            availableSpots: 45,
-            totalSpots: 200,
-            occupancy: 78,
-            carSpots: 35,
-            bikeSpots: 10,
-            isConnected: false,
-            category: "public",
-        },
-        {
-            id: 6,
-            name: "Mercado - Fogo Atac...",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Quase Cheio",
-            statusColor: "bg-yellow-400",
-            availableSpots: 12,
-            totalSpots: 80,
-            occupancy: 85,
-            carSpots: 8,
-            bikeSpots: 4,
-            isConnected: false,
-            category: "public",
-        },
-        {
-            id: 7,
-            name: "IFMS Campus Navirai",
-            address: "R. Hilda, 203",
-            distance: 2.5,
-            status: "Lotado",
-            statusColor: "bg-red-500",
-            availableSpots: 0,
-            totalSpots: 150,
-            occupancy: 100,
-            carSpots: 0,
-            bikeSpots: 0,
-            isConnected: false,
-            category: "public",
-        },
-    ])
-
-    const handleLogout = () => {
-        setIsLoggedIn(false)
-        setCurrentScreen("home")
-    }
-
-    const handleNavigate = (
-        screen: "home" | "config" | "register-vehicle" | "parking-detail" | "history" | "parking-history",
-    ) => {
-        setCurrentScreen(screen)
-    }
-
+    // 3. Funções de navegação agora usam o router
     const handleSelectParking = (parkingId: number) => {
-        setSelectedParkingId(parkingId)
-        setCurrentScreen("parking-detail")
+        // Navega para a URL: /usuario/motorista/estacionamento/[id]
+        router.push(`/usuario/motorista/estacionamento/${parkingId}`)
     }
 
-    const handleParkingHistory = (parkingId: number) => {
-        setSelectedParkingId(parkingId)
-        setCurrentScreen("parking-history")
+    const handleNavigate = (screen: "config" | "home" | "register-vehicle") => {
+        // Navega para a URL: /usuario/motorista/config, /home ou /register-vehicle
+        router.push(`/usuario/motorista/${screen}`)
     }
 
-    const handleConnectParking = (parkingId: number) => {
-        const parking = publicParkings.find((p) => p.id === parkingId)
-        if (parking) {
-            const { isConnected, ...parkingWithoutFlag } = parking
-            setConnectedParkings([...connectedParkings, parkingWithoutFlag])
-            setPublicParkings(publicParkings.filter((p) => p.id !== parkingId))
-            addNotification("Estacionamento conectado com sucesso!")
-        }
-    }
-
-    const handleDisconnectParking = (parkingId: number) => {
-        const parking = connectedParkings.find((p) => p.id === parkingId && p.category === "public")
-        if (parking) {
-            const { category, ...parkingWithoutCategory } = parking
-            setPublicParkings([...publicParkings, { ...parkingWithoutCategory, isConnected: false, category: "public" }])
-            setConnectedParkings(connectedParkings.filter((p) => p.id !== parkingId))
-            addNotification("Estacionamento desconectado com sucesso!")
-        }
-    }
-
-    const handleSaveProfile = (updatedProfile: any) => {
-        setUserProfile(updatedProfile)
-        addNotification("Alteração foi realizada com sucesso")
-    }
-
-    const handleSetPrimaryVehicle = (vehicleId: number) => {
-        setVehicles(
-            vehicles.map((v) => ({
-                ...v,
-                isPrincipal: v.id === vehicleId,
-            })),
+    // 4. Lidamos com o estado de carregamento
+    if (!userProfile) {
+        return (
+            <main className="max-w-7xl mx-auto px-6 py-8">
+                <div>Carregando perfil...</div>
+            </main>
         )
     }
 
-    const handleDeleteVehicle = (vehicleId: number) => {
-        setVehicles(vehicles.filter((v) => v.id !== vehicleId))
-        addNotification("Veículo deletado com sucesso")
-    }
-
-    const handleAddVehicle = (newVehicle: Vehicle) => {
-        setVehicles([...vehicles, newVehicle])
-        addNotification("Novo Veículo Adicionado com sucesso")
-    }
-
-    const handleChangeAvatar = () => {
-        setUserProfile({
-            ...userProfile,
-            avatar: (userProfile.avatar % 5) + 1,
-        })
-    }
-
-    const addNotification = (message: string) => {
-        const newNotification = {
-            id: Date.now(),
-            message,
-            timestamp: "Agora",
-            read: false,
-        }
-        setNotifications([newNotification, ...notifications])
-    }
-
-    if (!isLoggedIn) {
-        return <LoginScreen onLogin={() => setIsLoggedIn(true)} />
-    }
-
-    const renderScreen = () => {
-        switch (currentScreen) {
-            case "home":
-                return (
-                    <HomeScreen
-                        onNavigate={handleNavigate}
-                        onSelectParking={handleSelectParking}
-                        connectedParkings={connectedParkings}
-                        publicParkings={publicParkings}
-                        onConnectParking={handleConnectParking}
-                        onDisconnectParking={handleDisconnectParking}
-                        userProfile={userProfile}
-                        vehicles={vehicles}
-                    />
-                )
-            case "config":
-                return (
-                    <ConfigScreen
-                        onNavigate={handleNavigate}
-                        userProfile={userProfile}
-                        vehicles={vehicles}
-                        onSaveProfile={handleSaveProfile}
-                        onSetPrimaryVehicle={handleSetPrimaryVehicle}
-                        onDeleteVehicle={handleDeleteVehicle}
-                        onChangeAvatar={handleChangeAvatar}
-                    />
-                )
-            case "register-vehicle":
-                return <RegisterVehicleScreen onNavigate={handleNavigate} onAddVehicle={handleAddVehicle} />
-            case "parking-detail":
-                return (
-                    <ParkingDetailScreen
-                        parkingId={selectedParkingId}
-                        onNavigate={handleNavigate}
-                        onParkingHistory={handleParkingHistory}
-                    />
-                )
-            case "history":
-                return <HistoryScreen onNavigate={handleNavigate} />
-            case "parking-history":
-                return <HistoryScreen onNavigate={handleNavigate} parkingId={selectedParkingId} isParkingSpecific />
-            default:
-                return (
-                    <HomeScreen
-                        onNavigate={handleNavigate}
-                        onSelectParking={handleSelectParking}
-                        connectedParkings={connectedParkings}
-                        publicParkings={publicParkings}
-                        onConnectParking={handleConnectParking}
-                        onDisconnectParking={handleDisconnectParking}
-                        userProfile={userProfile}
-                        vehicles={vehicles}
-                    />
-                )
-        }
-    }
-
+    // 5. O JSX é copiado de 'home-screen.tsx'
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Header
-                currentScreen={currentScreen}
+        <main className="max-w-7xl mx-auto px-6 py-8">
+            {/* O UserProfile agora recebe os dados do contexto.
+              Passamos as funções de navegação atualizadas.
+            */}
+            <UserProfile
                 onNavigate={handleNavigate}
-                onLogout={handleLogout}
-                notifications={notifications}
                 userProfile={userProfile}
+                connectedParkingsCount={connectedParkings.length}
+                vehiclesCount={vehicles.length}
             />
-            {renderScreen()}
-        </div>
+
+            {/* Seção de Estacionamentos Conectados */}
+            <section className="mt-12 mb-12">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold">Estacionamentos Conectados</h2>
+                    <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Buscar..."
+                            value={connectedSearch}
+                            onChange={(e) => setConnectedSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {filteredConnected.map((parking) => (
+                        <div
+                            key={parking.id}
+                            className="cursor-pointer transition-transform hover:scale-105 relative group"
+                            onClick={() => handleSelectParking(parking.id)} // Função atualizada
+                        >
+                            <ParkingCard {...parking} />
+                            {parking.category === "public" && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDisconnectParking(parking.id) // Função do contexto
+                                    }}
+                                    className="absolute top-4 right-4 px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
+                                >
+                                    Desconectar
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <div className="border-t-2 border-gray-300 my-8" />
+
+            {/* Seção de Estacionamentos Públicos */}
+            <section className="mt-12">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold">
+                        Quem mais está no <span className="text-emerald-600">EstacioneJá</span>?
+                    </h2>
+                    <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Buscar..."
+                            value={publicSearch}
+                            onChange={(e) => setPublicSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {filteredPublic.map((parking) => (
+                        <div key={parking.id} className="relative group">
+                            <ParkingCard {...parking} />
+                            <button
+                                onClick={() => handleConnectParking(parking.id)} // Função do contexto
+                                className="absolute top-4 right-4 px-3 py-1 bg-orange-500 text-white text-xs font-semibold rounded hover:bg-orange-600 transition opacity-0 group-hover:opacity-100"
+                            >
+                                + Conectar
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </main>
     )
 }

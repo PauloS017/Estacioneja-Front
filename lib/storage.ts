@@ -26,7 +26,7 @@ export interface AccessRecord {
 export interface AuthUser {
   email: string
   name: string
-  role: "operator"
+  role: "operator" | "motorista" | "admin"
 }
 
 const STORAGE_KEY = "access_records"
@@ -35,13 +35,15 @@ const NOTIFICATIONS_KEY = "notifications"
 
 export function saveAccessRecords(records: AccessRecord[]): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+    // ALTERADO: de localStorage para sessionStorage
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(records))
   }
 }
 
 export function loadAccessRecords(): AccessRecord[] {
   if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    // ALTERADO: de localStorage para sessionStorage
+    const stored = sessionStorage.getItem(STORAGE_KEY)
     return stored ? JSON.parse(stored) : []
   }
   return []
@@ -59,13 +61,15 @@ export function getRecordsByPlate(plate: string): AccessRecord[] {
 
 export function saveCurrentUser(user: AuthUser): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(user))
+    // ALTERADO: de localStorage para sessionStorage
+    sessionStorage.setItem(AUTH_KEY, JSON.stringify(user))
   }
 }
 
 export function loadCurrentUser(): AuthUser | null {
   if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(AUTH_KEY)
+    // ALTERADO: de localStorage para sessionStorage
+    const stored = sessionStorage.getItem(AUTH_KEY)
     return stored ? JSON.parse(stored) : null
   }
   return null
@@ -73,7 +77,8 @@ export function loadCurrentUser(): AuthUser | null {
 
 export function clearCurrentUser(): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(AUTH_KEY)
+    // ALTERADO: de localStorage para sessionStorage
+    sessionStorage.removeItem(AUTH_KEY)
   }
 }
 
@@ -105,13 +110,15 @@ export interface Notification {
 
 export function saveNotifications(notifications: Notification[]): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications))
+    // ALTERADO: de localStorage para sessionStorage
+    sessionStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications))
   }
 }
 
 export function loadNotifications(): Notification[] {
   if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(NOTIFICATIONS_KEY)
+    // ALTERADO: de localStorage para sessionStorage
+    const stored = sessionStorage.getItem(NOTIFICATIONS_KEY)
     return stored
       ? JSON.parse(stored)
       : [

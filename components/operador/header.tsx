@@ -1,9 +1,9 @@
 "use client"
 
 import { Bell, User, LogOut } from "lucide-react"
-import { useState, useEffect } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
-import { loadCurrentUser, loadNotifications, type Notification } from "../../lib/storage"
+import { useOperador } from "@/context/OperadorContext" // 1. Pega dados do Operador
+import { useAuth } from "@/context/AuthContext" // 2. Pega Auth do Cérebro-Mestre
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,24 +14,10 @@ import {
 } from "../ui/dropdown-menu"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card"
 
-export default function Header({ onLogout }: { onLogout?: () => void }) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
-
-  useEffect(() => {
-    const user = loadCurrentUser()
-    setCurrentUser(user)
-
-    // Load notifications initially
-    setNotifications(loadNotifications())
-
-    // Refresh notifications every 2 seconds
-    const interval = setInterval(() => {
-      setNotifications(loadNotifications())
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [])
+export default function Header() {
+  // 3. Pegar dados dos dois cérebros
+  const { currentUser, logout } = useAuth() // Pega usuário e logout
+  const { notifications } = useOperador() // Pega notificações
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -110,7 +96,7 @@ export default function Header({ onLogout }: { onLogout?: () => void }) {
               <User className="w-4 h-4 mr-2" />
               Meu Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-600">
+            <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
               <LogOut className="w-4 h-4 mr-2" />
               Desconectar
             </DropdownMenuItem>

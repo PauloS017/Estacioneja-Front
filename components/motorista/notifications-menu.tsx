@@ -1,33 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Bell, X } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useMotorista } from "@/context/MotoristaContext" // 1. Importar o hook
 
-interface NotificationsMenuProps {
-    notifications: any[]
-}
+// 2. Remover a interface de props e as props da função
+export default function NotificationsMenu() {
 
-export default function NotificationsMenu({ notifications }: NotificationsMenuProps) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [notificationsList, setNotificationsList] = useState(notifications)
+    // 3. Pegar os dados e funções do contexto
+    const { notifications, markNotificationAsRead, dismissNotification } = useMotorista()
 
-    useEffect(() => {
-        setNotificationsList(notifications)
-    }, [notifications])
-
-    const unreadCount = notificationsList.filter((n) => !n.read).length
-
-    const markAsRead = (id: number) => {
-        setNotificationsList(notificationsList.map((n) => (n.id === id ? { ...n, read: true } : n)))
-    }
-
-    const dismissNotification = (id: number) => {
-        setNotificationsList(notificationsList.filter((n) => n.id !== id))
-    }
+    const unreadCount = notifications.filter((n) => !n.read).length
 
     return (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button className="relative p-2 hover:bg-gray-100 rounded-lg transition">
                     <Bell className="w-6 h-6 text-gray-600 hover:text-emerald-600" />
@@ -43,13 +29,13 @@ export default function NotificationsMenu({ notifications }: NotificationsMenuPr
                     <h3 className="font-semibold text-gray-900">Notificações</h3>
                 </div>
                 <div>
-                    {notificationsList.length > 0 ? (
-                        notificationsList.map((notification) => (
+                    {notifications.length > 0 ? (
+                        notifications.map((notification) => (
                             <div
                                 key={notification.id}
                                 className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition group ${!notification.read ? "bg-blue-50" : ""
                                     }`}
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() => markNotificationAsRead(notification.id)} // Chamar a função do contexto
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1">
@@ -61,7 +47,7 @@ export default function NotificationsMenu({ notifications }: NotificationsMenuPr
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation()
-                                            dismissNotification(notification.id)
+                                            dismissNotification(notification.id) // Chamar a função do contexto
                                         }}
                                         className="opacity-0 group-hover:opacity-100 transition"
                                     >

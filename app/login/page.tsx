@@ -90,9 +90,9 @@ export default function LoginPage() {
                         Entrar
                     </Button>
                     <div className="flex items-center my-3">
-                        <div className="flex-grow border-t border-gray-300"></div>
+                        <div className="grow border-t border-gray-300"></div>
                         <span className="mx-4 text-sm text-gray-500">OU</span>
-                        <div className="flex-grow border-t border-gray-300"></div>
+                        <div className="grow border-t border-gray-300"></div>
                     </div>
                     <Button
                         className="w-full bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"

@@ -87,9 +87,9 @@ export default function LoginPage() {
                         <p className="text-sm text-red-600 text-center">{error}</p>
                     )}
                     <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3">
-                        Entrar com Email
+                        Entrar
                     </Button>
-                    <div className="flex items-center my-2">
+                    <div className="flex items-center my-3">
                         <div className="flex-grow border-t border-gray-300"></div>
                         <span className="mx-4 text-sm text-gray-500">OU</span>
                         <div className="flex-grow border-t border-gray-300"></div>

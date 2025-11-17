@@ -1,7 +1,8 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-// REMOVIDO: useRouter
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+
+import { useAuth } from "@/context/AuthContext"
 
 // --- 1. DEFINIÇÃO DE TIPOS ---
 interface Vehicle {
@@ -12,6 +13,7 @@ interface Vehicle {
     type: "car" | "bike"
     isPrincipal: boolean
 }
+
 interface Parking {
     id: number
     name: string
@@ -27,6 +29,7 @@ interface Parking {
     isConnected?: boolean
     category?: "connected" | "public"
 }
+
 interface UserProfile {
     name: string
     email: string
@@ -35,6 +38,7 @@ interface UserProfile {
     address: string
     avatar: number
 }
+
 interface Notification {
     id: number
     message: string
@@ -42,9 +46,8 @@ interface Notification {
     read: boolean
 }
 
-// --- 2. INTERFACE DO CONTEXTO (Simplificada) ---
+// --- 2. INTERFACE DO CONTEXTO ---
 interface IMotoristaContext {
-    // REMOVIDO: isLoggedIn, login, logout
     userProfile: UserProfile
     vehicles: Vehicle[]
     notifications: Notification[]
@@ -64,19 +67,36 @@ interface IMotoristaContext {
 
 const MotoristaContext = createContext<IMotoristaContext | null>(null)
 
-// --- 3. O PROVEDOR (Simplificado) ---
+// --- 3. O PROVEDOR ---
 export function MotoristaProvider({ children }: { children: ReactNode }) {
-    // REMOVIDO: useRouter, isLoggedIn, setIsLoggedIn, login, logout
 
-    // --- ESTADO DOS DADOS (Completo) ---
+    // 2. PEGAR O USUÁRIO ATUAL DO AUTHCONTEXT
+    const { currentUser } = useAuth()
+
+    // Dados Iniciais (Padrão/Placeholder)
+    // Esses dados serão sobrescritos pelo useEffect abaixo quando logar
     const [userProfile, setUserProfile] = useState({
-        name: "Larissa Nagoia",
-        email: "larissa.nagoia@gmail.com.br",
-        cpf: "123.456.789-00",
-        phone: "(67) 98765-4321",
-        address: "Rua Exemplo, 123 - Naviraí/MS",
+        name: "Usuário Visitante",
+        email: "visitante@email.com",
+        cpf: "000.000.000-00",
+        phone: "(00) 00000-0000",
+        address: "Endereço não cadastrado",
         avatar: 1,
     })
+
+    // 3. EFEITO DE SINCRONIZAÇÃO (A CORREÇÃO MÁGICA)
+    useEffect(() => {
+        // Se existe um usuário logado E ele é um motorista...
+        if (currentUser && currentUser.role === 'motorista') {
+            // ...atualizamos o perfil do motorista com os dados do login!
+            setUserProfile(prevProfile => ({
+                ...prevProfile, // Mantém CPF, Endereço (que o login não tem)
+                name: currentUser.name, // Atualiza Nome
+                email: currentUser.email // Atualiza Email
+            }))
+        }
+    }, [currentUser]) // Roda sempre que o currentUser mudar
+
 
     const [vehicles, setVehicles] = useState<Vehicle[]>([
         { id: 1, plate: "ABC-123", model: "Honda Civic", color: "Preto", type: "car", isPrincipal: true },
@@ -102,7 +122,7 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
     ])
 
 
-    // --- FUNÇÕES (AÇÕES) (Completas) ---
+    // --- FUNÇÕES (AÇÕES) ---
 
     const addNotification = (message: string) => {
         const newNotification: Notification = {
@@ -170,10 +190,8 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
         }
     }
 
-
-    // --- 5. O VALOR FORNECIDO ---
+    // --- 4. O VALOR FORNECIDO ---
     const value = {
-        // REMOVIDO: isLoggedIn, login, logout
         userProfile,
         vehicles,
         notifications,
@@ -198,7 +216,6 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
     )
 }
 
-// --- 6. O HOOK DE ACESSO ---
 export function useMotorista() {
     const context = useContext(MotoristaContext)
     if (!context) {

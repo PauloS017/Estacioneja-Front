@@ -1,12 +1,11 @@
 "use client"
-
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
 import Swal from 'sweetalert2'
-import { GoogleIcon } from "@/components/ui/google-icon"
+import { OfficialGoogleButton } from "@/components/ui/OfficialGoogleButton"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -28,7 +27,7 @@ export default function LoginPage() {
         handleAuthResponse(loggedInUser);
     }
 
-    const handleAuthResponse = (loggedInUser: any) => { // 'any' por causa do 'AuthUser'
+    const handleAuthResponse = (loggedInUser: any) => {
         if (loggedInUser) {
             if (loggedInUser.role === "motorista") {
                 router.push("/usuario/motorista")
@@ -49,8 +48,6 @@ export default function LoginPage() {
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center px-4">
             <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
 
-                {/* --- CORREÇÃO AQUI --- */}
-                {/* Este é o seu logo, que eu havia removido por engano. */}
                 <div className="mb-8 text-center">
                     <div className="text-4xl font-bold mb-2">
                         <span className="text-emerald-600">Estacione</span>
@@ -59,9 +56,6 @@ export default function LoginPage() {
                     <p className="text-gray-600 text-sm">SUA VAGA GARANTIDA</p>
                 </div>
 
-
-
-                {/* Formulário de Email/Senha */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
@@ -89,23 +83,20 @@ export default function LoginPage() {
                     <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3">
                         Entrar
                     </Button>
+
+                    {/* Divisor "OU" */}
                     <div className="flex items-center my-3">
                         <div className="grow border-t border-gray-300"></div>
                         <span className="mx-4 text-sm text-gray-500">OU</span>
                         <div className="grow border-t border-gray-300"></div>
                     </div>
-                    <Button
-                        className="w-full bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+
+                    <OfficialGoogleButton
+                        className="w-full"
                         onClick={handleGoogleLogin}
-                    >
-                        <GoogleIcon className="mr-2" />
-                        Entrar com o Google
-                    </Button>
-
-
-
+                        text="Entrar com o Google"
+                    />
                 </form>
-
             </div>
         </div>
     )

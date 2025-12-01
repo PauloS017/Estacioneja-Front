@@ -54,20 +54,15 @@ export default function MotoristaHomePage() {
         )
     }
 
-    // 5. O JSX é copiado de 'home-screen.tsx'
     return (
         <main className="max-w-7xl mx-auto px-6 py-8">
-            {/* O UserProfile agora recebe os dados do contexto.
-              Passamos as funções de navegação atualizadas.
-            */}
             <UserProfile
                 onNavigate={handleNavigate}
                 userProfile={userProfile}
                 connectedParkingsCount={connectedParkings.length}
                 vehiclesCount={vehicles.length}
             />
-
-            {/* Seção de Estacionamentos Conectados */}
+            
             <section className="mt-12 mb-12">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold">Estacionamentos Conectados</h2>

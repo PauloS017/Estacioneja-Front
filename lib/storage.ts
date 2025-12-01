@@ -26,7 +26,7 @@ export interface AccessRecord {
 export interface AuthUser {
   email: string
   name: string
-  role: "operator" | "motorista" | "admin"
+  role: "ROLE_USER" | "ROLE_ADMIN"
 }
 
 const STORAGE_KEY = "access_records"

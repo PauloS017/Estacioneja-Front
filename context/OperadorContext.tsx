@@ -55,7 +55,7 @@ export function OperadorProvider({ children }: { children: ReactNode }) {
     // Verifica se o usuário já está logado (no localStorage)
     useEffect(() => {
         const user = loadCurrentUser()
-        if (user && user.role === 'operator') {
+        if (user && user.role === 'ROLE_ADMIN') {
             setCurrentUser(user)
             setIsLoggedIn(true)
         }
@@ -70,7 +70,7 @@ export function OperadorProvider({ children }: { children: ReactNode }) {
         const operator = operators.find((op) => op.email === email && op.password === pass)
 
         if (operator) {
-            const authUser: AuthUser = { email: operator.email, name: operator.name, role: "operator" }
+            const authUser: AuthUser = { email: operator.email, name: operator.name, role: "ROLE_ADMIN" }
             saveCurrentUser(authUser) // Salva no "banco de dados"
             setCurrentUser(authUser)
             setIsLoggedIn(true)

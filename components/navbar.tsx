@@ -3,10 +3,11 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bell, Menu, User, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/context/AuthContext"
 
 // Lista de links que vamos manter.
 const navLinks = [
@@ -19,6 +20,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { loginWithGoogle } = useAuth();
 
  
   return (
@@ -49,16 +51,9 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {/* Botões de Login/Cadastro para Desktop */}
           <div className="hidden sm:flex items-center gap-2">
-            <Link href="/login">
-              <Button variant="outline" size="sm">
+              <Button onClick={loginWithGoogle} variant="outline" className="w-full bg-transparent">
                 Entrar
               </Button>
-            </Link>
-            <Link href="/cadastrar">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                Cadastrar
-              </Button>
-            </Link>
           </div>
 
           {/* Gatilho do Menu Mobile */}
@@ -95,13 +90,10 @@ export function Navbar() {
                 </nav>
                 {/* Botões de Login/Cadastro para Mobile */}
                 <div className="mt-6 pt-6 border-t flex flex-col gap-2">
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href={`${process.env.NEXT_PUBLIC_API_KEY}/oauth2/authorization/google`} onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full bg-transparent">
                       Entrar
                     </Button>
-                  </Link>
-                  <Link href="/cadastrar" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full">Cadastrar</Button>
                   </Link>
                 </div>
               </SheetContent>

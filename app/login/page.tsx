@@ -1,51 +1,71 @@
 "use client"
-import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
-import Swal from 'sweetalert2'
 import { OfficialGoogleButton } from "@/components/ui/OfficialGoogleButton"
+import { ArrowLeft } from "lucide-react"
+import Swal from 'sweetalert2'
 
 export default function LoginPage() {
     const router = useRouter()
+
     const { login, loginWithGoogle } = useAuth()
+
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState<string | null>(null)
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
+
         const loggedInUser = login(email, password)
-        handleAuthResponse(loggedInUser)
+
+        if (loggedInUser) {
+            handleRedirect(loggedInUser)
+        } else {
+            setError("Falha na autenticação.")
+            Swal.fire({ icon: "error", title: "Erro", text: "Email ou senha incorretos." })
+        }
     }
+
 
     const handleGoogleLogin = () => {
         setError(null)
-        const loggedInUser = loginWithGoogle();
-        handleAuthResponse(loggedInUser);
+        loginWithGoogle();
     }
 
-    const handleAuthResponse = (loggedInUser: any) => {
-        if (loggedInUser) {
-            if (loggedInUser.role === "motorista") {
-                router.push("/usuario/motorista")
-            } else if (loggedInUser.role === "operator") {
-                router.push("/usuario/operador/validacao")
-            } else {
-                router.push("/")
-            }
+
+    const handleRedirect = (user: any) => {
+        if (user.role === "motorista") {
+            router.push("/usuario/motorista")
+        } else if (user.role === "operator" || user.role === "ROLE_ADMIN") {
+            router.push("/usuario/operador/validacao")
         } else {
-            setError("Falha na autenticação.")
-            Swal.fire({ icon: "error", title: "Erro", text: "Não foi possível fazer login." })
+            router.push("/")
         }
     }
 
     const inputClassName = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-900 bg-white"
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center px-4 relative">
+
+
+            <div className="absolute top-8 left-8">
+                <Link
+                    href="/"
+                    className="flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-900 transition-colors"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Voltar para o site
+                </Link>
+            </div>
+
             <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
 
                 <div className="mb-8 text-center">
@@ -65,6 +85,7 @@ export default function LoginPage() {
                             onChange={(e) => setEmail(e.target.value)}
                             className={inputClassName}
                             placeholder="seu@email.com"
+                            required
                         />
                     </div>
                     <div>
@@ -75,23 +96,27 @@ export default function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                             className={inputClassName}
                             placeholder="••••••••"
+                            required
                         />
                     </div>
+
                     {error && (
-                        <p className="text-sm text-red-600 text-center">{error}</p>
+                        <p className="text-sm text-red-600 text-center bg-red-50 p-2 rounded">{error}</p>
                     )}
-                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3">
+
+                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 text-lg">
                         Entrar
                     </Button>
 
                     {/* Divisor "OU" */}
-                    <div className="flex items-center my-3">
+                    <div className="flex items-center my-4">
                         <div className="grow border-t border-gray-300"></div>
-                        <span className="mx-4 text-sm text-gray-500">OU</span>
+                        <span className="mx-4 text-sm text-gray-500 font-medium">OU</span>
                         <div className="grow border-t border-gray-300"></div>
                     </div>
 
                     <OfficialGoogleButton
+                        type="button"
                         className="w-full"
                         onClick={handleGoogleLogin}
                         text="Entrar com o Google"

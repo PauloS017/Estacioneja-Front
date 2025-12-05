@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 
 import { useAuth } from "@/context/AuthContext"
+import { getUser } from '@/utils/api/http/get/user'
+import useStateless from '@/hooks/use-stateless'
 
 // --- 1. DEFINIÇÃO DE TIPOS ---
 interface Vehicle {
@@ -69,12 +71,26 @@ const MotoristaContext = createContext<IMotoristaContext | null>(null)
 
 // --- 3. O PROVEDOR ---
 export function MotoristaProvider({ children }: { children: ReactNode }) {
+    const { token } = useStateless();
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
-    // 2. PEGAR O USUÁRIO ATUAL DO AUTHCONTEXT
-    const { currentUser } = useAuth()
+    useEffect(() => {
+        if (!token) return;   
 
-    // Dados Iniciais (Padrão/Placeholder)
-    // Esses dados serão sobrescritos pelo useEffect abaixo quando logar
+        async function loadUser() {
+            try {
+                const user = await getUser(token);
+                console.log("Usuário carregado:", user);
+                setCurrentUser(user);
+            } catch (err) {
+                console.error("Erro ao carregar usuário:", err);
+            }
+        }
+
+        loadUser();
+    }, [token]);
+
+
     const [userProfile, setUserProfile] = useState({
         name: "Usuário Visitante",
         email: "visitante@email.com",
@@ -84,18 +100,16 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
         avatar: 1,
     })
 
-    // 3. EFEITO DE SINCRONIZAÇÃO (A CORREÇÃO MÁGICA)
     useEffect(() => {
-        // Se existe um usuário logado E ele é um motorista...
-        if (currentUser && currentUser.role === 'motorista') {
-            // ...atualizamos o perfil do motorista com os dados do login!
+        if (currentUser) {
             setUserProfile(prevProfile => ({
-                ...prevProfile, // Mantém CPF, Endereço (que o login não tem)
-                name: currentUser.name, // Atualiza Nome
-                email: currentUser.email // Atualiza Email
+                ...prevProfile, 
+                name: currentUser.name,
+                email: currentUser.email,
+                cpf: currentUser.cpf
             }))
         }
-    }, [currentUser]) // Roda sempre que o currentUser mudar
+    }, [currentUser])
 
 
     const [vehicles, setVehicles] = useState<Vehicle[]>([

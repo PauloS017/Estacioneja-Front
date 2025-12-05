@@ -21,8 +21,6 @@ export default function ConfigPage() {
     const [formData, setFormData] = useState(userProfile)
     const [showSaveMessage, setShowSaveMessage] = useState(false)
 
-    // A função 'handleInputChange' agora só precisa formatar o telefone,
-    // já que o CPF não é mais editável.
     const handleInputChange = (field: string, value: string) => {
         let formattedValue = value
         if (field === "phone") {

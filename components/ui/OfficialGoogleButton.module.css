@@ -1,21 +1,18 @@
-/* 📁 components/ui/OfficialGoogleButton.module.css */
-
-/* === Botão Principal (gsi-material-button) === */
 .gsiMaterialButton {
-    /* Reset e Base */
+
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
     
-    /* Cores e Aparência */
+
     background-color: #FFFFFF;
     background-image: none;
     color: #3C4043; 
     border: 1px solid #DADCE0;
-    border-radius: 4px; /* O arredondamento customizado será sobrescrito pelo Tailwind no LoginPage */
+    border-radius: 4px; 
     
-    /* Layout */
+ 
     cursor: pointer;
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
@@ -28,20 +25,19 @@
     text-align: center;
     text-transform: none;
     
-    /* Modelo de Caixa - CORREÇÃO DE LARGURA */
+   
     position: relative;
     display: inline-block;
     height: 40px; 
     
-    width: 100% !important;   /* <-- FORÇA A LARGURA TOTAL */
-    min-width: 100% !important; /* <-- FORÇA A LARGURA MÍNIMA TAMBÉM */
+    width: 100% !important;   
+    min-width: 100% !important; 
     
-    /* Efeitos Visuais */
     transition: background-color .218s, border-color .218s, box-shadow .218s;
     box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
 }
 
-/* === Estados (Interações) === */
+
 .gsiMaterialButton:hover {
     background-color: #F8F9FA;
     border-color: #DADCE0;
@@ -82,7 +78,7 @@
     vertical-align: middle;
 }
 
-/* === Overlay de Estado (Efeitos de Clique) === */
+
 .gsiMaterialButtonState {
     background-color: transparent;
     border: none;

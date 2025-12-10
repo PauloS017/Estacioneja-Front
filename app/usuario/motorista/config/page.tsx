@@ -89,7 +89,7 @@ export default function ConfigPage() {
                         <label className="block text-sm font-semibold text-gray-700 mb-2">CPF</label>
                         <input
                             type="text"
-                            value={formData.cpf}
+                            value={formData.cpf || ""}
                             placeholder="###.###.###-##"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none 
                                        disabled:bg-gray-100 disabled:opacity-70 disabled:cursor-not-allowed text-black"

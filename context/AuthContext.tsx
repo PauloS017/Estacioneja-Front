@@ -27,9 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const user = loadCurrentUser()
-        if (user) { setCurrentUser(user) }
-        setIsLoading(false)
+        async function load() {
+            const user = await loadCurrentUser()
+            if (user) { setCurrentUser(user) }
+            setIsLoading(false)
+        }
+
+        load();
     }, [])
 
 
@@ -45,11 +49,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = () => {
         clearCurrentUser()
         setCurrentUser(null)
-        router.push("/login")
+        localStorage.removeItem('jwt');
+        router.push('/')
     }
 
     const value = {
-        isLoggedIn: true,
+        isLoggedIn: !!currentUser,
         isLoading,
         currentUser,
         logout,

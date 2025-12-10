@@ -1,3 +1,4 @@
+import { AuthUser } from "@/lib/storage";
 import { api } from "../../apiconfig";
 
 export async function getUser(token: string | null) {

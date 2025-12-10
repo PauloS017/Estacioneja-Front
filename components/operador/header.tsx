@@ -16,8 +16,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card"
 
 export default function Header() {
   // 3. Pegar dados dos dois cérebros
-  const { currentUser, logout } = useAuth() // Pega usuário e logout
-  const { notifications } = useOperador() // Pega notificações
+  const { currentUser } = useAuth() // Pega usuário e logout
+  const { notifications, logout } = useOperador() // Pega notificações
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -75,7 +75,7 @@ export default function Header() {
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent align="end" className="w-78">
             <DropdownMenuLabel>
               <div className="flex items-center gap-3 py-2">
                 <Avatar className="w-12 h-12">
@@ -86,7 +86,7 @@ export default function Header() {
                 </Avatar>
                 <div>
                   <p className="font-bold text-gray-900">Operador:</p>
-                  <p className="font-semibold text-gray-900">{currentUser?.name || "Operador"}</p>
+                  <p className="font-semibold text-gray-900">{currentUser?.name.split(' ')[0] || "Operador"}</p>
                   <p className="text-xs text-gray-600">{currentUser?.email || ""}</p>
                 </div>
               </div>

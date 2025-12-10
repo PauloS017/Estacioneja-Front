@@ -1,3 +1,5 @@
+import { getUser } from "@/utils/api/http/get/user"
+
 export interface Operator {
   name: string
   plate: string
@@ -24,13 +26,15 @@ export interface AccessRecord {
 }
 
 export interface AuthUser {
-  email: string
+  id: string
   name: string
-  role: "ROLE_USER" | "ROLE_ADMIN"
+  email: string
+  cpf: string | null
+  tipoUsuario: "COMUM" | "ADMINISTRATIVO"
 }
 
 const STORAGE_KEY = "access_records"
-const AUTH_KEY = "current_user"
+const AUTH_KEY = "jwt"
 const NOTIFICATIONS_KEY = "notifications"
 
 export function saveAccessRecords(records: AccessRecord[]): void {
@@ -66,11 +70,11 @@ export function saveCurrentUser(user: AuthUser): void {
   }
 }
 
-export function loadCurrentUser(): AuthUser | null {
+export async function loadCurrentUser() {
   if (typeof window !== "undefined") {
-    // ALTERADO: de localStorage para sessionStorage
-    const stored = sessionStorage.getItem(AUTH_KEY)
-    return stored ? JSON.parse(stored) : null
+    const token: string | null = localStorage.getItem('jwt');
+
+    return await getUser(token);
   }
   return null
 }

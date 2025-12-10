@@ -6,33 +6,17 @@ import { useAuth } from "@/context/AuthContext"
 import Header from "@/components/operador/header"
 import Sidebar from "@/components/operador/sidebar"
 import { Spinner } from '@/components/ui/spinner'
+import { getUser } from '@/utils/api/http/get/user'
 
 /**
  * Guarda de Segurança
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
-    const { isLoggedIn, isLoading, currentUser, logout } = useAuth();
+    const { isLoggedIn, isLoading, logout, currentUser } = useAuth();
     const router = useRouter();
 
     // 2. O ESTADO DA SIDEBAR AGORA VIVE AQUI, NO LAYOUT
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-    useEffect(() => {
-        if (!isLoading && !isLoggedIn) {
-            router.replace("/login");
-        }
-        if (!isLoading && isLoggedIn && currentUser?.role !== "operator") {
-            logout();
-        }
-    }, [isLoggedIn, isLoading, currentUser, router, logout]);
-
-    if (isLoading || !isLoggedIn || currentUser?.role !== "operator") {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <Spinner className="h-8 w-8" />
-            </div>
-        );
-    }
 
     // 3. O LAYOUT FOI REFEITO PARA CORRIGIR O BUG
     return (

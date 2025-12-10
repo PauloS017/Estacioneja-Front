@@ -54,14 +54,18 @@ export function OperadorProvider({ children }: { children: ReactNode }) {
     // --- EFEITO INICIAL ---
     // Verifica se o usuário já está logado (no localStorage)
     useEffect(() => {
-        const user = loadCurrentUser()
-        if (user && user.role === 'ROLE_ADMIN') {
-            setCurrentUser(user)
-            setIsLoggedIn(true)
+        async function load() {
+             const user = await loadCurrentUser()
+            if (user && user.tipoUsuario === 'ADMINISTRATIVO') {
+                setCurrentUser(user)
+                setIsLoggedIn(true)
+            }
+            setAccessRecords(loadAccessRecords())
+            setNotifications(loadNotifications())
+            setIsLoading(false)
         }
-        setAccessRecords(loadAccessRecords())
-        setNotifications(loadNotifications())
-        setIsLoading(false)
+
+        load();
     }, [])
 
     // --- FUNÇÕES (AÇÕES) ---
@@ -70,7 +74,7 @@ export function OperadorProvider({ children }: { children: ReactNode }) {
         const operator = operators.find((op) => op.email === email && op.password === pass)
 
         if (operator) {
-            const authUser: AuthUser = { email: operator.email, name: operator.name, role: "ROLE_ADMIN" }
+            const authUser: AuthUser = { email: operator.email, name: operator.name, role: "ADMINISTRATIVO" }
             saveCurrentUser(authUser) // Salva no "banco de dados"
             setCurrentUser(authUser)
             setIsLoggedIn(true)
@@ -83,7 +87,8 @@ export function OperadorProvider({ children }: { children: ReactNode }) {
         clearCurrentUser() // Limpa o "banco de dados"
         setCurrentUser(null)
         setIsLoggedIn(false)
-        router.push("/usuario/operador/login")
+        localStorage.removeItem('jwt');
+        router.push("/")
     }
 
     // Adiciona uma notificação (no estado E no "banco de dados")

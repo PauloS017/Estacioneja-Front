@@ -2,19 +2,31 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { getUser } from "@/utils/api/http/get/user"
 
 
 export default function CallbackPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const token = params.get("token")
+    async function run() {
+      const params = new URLSearchParams(window.location.search)
+      const token = params.get("token")
 
-    localStorage.setItem("jwt", token!)
+      localStorage.setItem("jwt", token!)
 
-    router.push("/usuario/motorista")
+      const user = await getUser(token);
+
+      if (user?.tipoUsuario === "COMUM") {
+        router.push("/usuario/motorista");
+      } else {
+        router.push("/usuario/operador");
+      }
+    }
+
+    run();
   }, [])
+
 
   return <p>Redirecionando...</p>
 }

@@ -6,9 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from 'sonner';
 
 // 1. IMPORTE OS TRÊS PROVEDORES
-import { AuthProvider } from "@/context/AuthContext"
 import { MotoristaProvider } from "@/context/MotoristaContext"
-import { OperadorProvider } from "@/context/OperadorContext"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,17 +29,12 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
 
-          {/* 2. ENVELOPE COM TUDO (AUTH É O MESTRE) */}
-          <AuthProvider>
             <MotoristaProvider>
-              <OperadorProvider>
                 <div className="flex min-h-screen flex-col">
                   <main className="flex-1">{children}</main>
                   <Toaster />
                 </div>
-              </OperadorProvider>
             </MotoristaProvider>
-          </AuthProvider>
 
         </ThemeProvider>
       </body>

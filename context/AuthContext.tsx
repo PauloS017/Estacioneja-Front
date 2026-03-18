@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         currentUser,
         login,
         logout,
-        loginWithGoogle // <--- 3. ADICIONE A FUNÇÃO AO "VALUE"
+        loginWithGoogle 
     }
 
     return (

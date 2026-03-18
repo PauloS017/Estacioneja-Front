@@ -11,8 +11,8 @@ import {
     type AccessRecord,
 } from "@/lib/storage"
 import Swal from "sweetalert2"
-import { useOperador } from "@/context/OperadorContext" // 1. Importe o cérebro do Operador
-import { useAuth } from "@/context/AuthContext" // 2. Importe o cérebro do Auth
+import { useOperador } from "@/context/OperadorContext"// 1. Importe o cérebro do Operador
+import { useAuth } from "@/context/AuthContext"// 2. Importe o cérebro do Auth
 
 // 3. Copiamos os dados estáticos do validation-screen.tsx original
 const operatorsDatabase = [

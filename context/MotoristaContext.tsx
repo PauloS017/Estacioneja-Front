@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 
-import { useAuth } from "@/context/AuthContext"
 
 // --- 1. DEFINIÇÃO DE TIPOS ---
 interface Vehicle {
@@ -70,8 +69,6 @@ const MotoristaContext = createContext<IMotoristaContext | null>(null)
 // --- 3. O PROVEDOR ---
 export function MotoristaProvider({ children }: { children: ReactNode }) {
 
-    // 2. PEGAR O USUÁRIO ATUAL DO AUTHCONTEXT
-    const { currentUser } = useAuth()
 
     // Dados Iniciais (Padrão/Placeholder)
     // Esses dados serão sobrescritos pelo useEffect abaixo quando logar
@@ -83,20 +80,6 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
         address: "Endereço não cadastrado",
         avatar: 1,
     })
-
-    // 3. EFEITO DE SINCRONIZAÇÃO (A CORREÇÃO MÁGICA)
-    useEffect(() => {
-        // Se existe um usuário logado E ele é um motorista...
-        if (currentUser && currentUser.role === 'motorista') {
-            // ...atualizamos o perfil do motorista com os dados do login!
-            setUserProfile(prevProfile => ({
-                ...prevProfile, // Mantém CPF, Endereço (que o login não tem)
-                name: currentUser.name, // Atualiza Nome
-                email: currentUser.email // Atualiza Email
-            }))
-        }
-    }, [currentUser]) // Roda sempre que o currentUser mudar
-
 
     const [vehicles, setVehicles] = useState<Vehicle[]>([
         { id: 1, plate: "ABC-123", model: "Honda Civic", color: "Preto", type: "car", isPrincipal: true },
@@ -121,8 +104,6 @@ export function MotoristaProvider({ children }: { children: ReactNode }) {
         { id: 7, name: "IFMS Campus Navirai", address: "R. Hilda, 203", distance: 2.5, status: "Lotado", statusColor: "bg-red-500", availableSpots: 0, totalSpots: 150, occupancy: 100, carSpots: 0, bikeSpots: 0, isConnected: false, category: "public" },
     ])
 
-
-    // --- FUNÇÕES (AÇÕES) ---
 
     const addNotification = (message: string) => {
         const newNotification: Notification = {

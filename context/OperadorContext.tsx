@@ -16,15 +16,11 @@ import {
     type Notification
 } from '@/lib/storage' // Usamos o storage como "banco de dados"
 
-// --- 1. INTERFACES ---
-
-// Lógica de login (do login-screen.tsx)
 const operators = [
     { email: "jose.antonio@estacioneja.com.br", password: "1234", name: "José Antonio" },
     { email: "maria.fernanda@estacioneja.com.br", password: "1234", name: "Maria Fernanda" },
 ]
 
-// --- 2. INTERFACE DO CONTEXTO ---
 interface IOperadorContext {
     isLoggedIn: boolean
     isLoading: boolean
@@ -37,22 +33,17 @@ interface IOperadorContext {
     addNotification: (message: string) => void
 }
 
-// --- 3. CRIAÇÃO DO CONTEXTO ---
 const OperadorContext = createContext<IOperadorContext | null>(null)
 
-// --- 4. O PROVEDOR ---
 export function OperadorProvider({ children }: { children: ReactNode }) {
     const router = useRouter()
 
-    // --- ESTADO ---
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
     const [accessRecords, setAccessRecords] = useState<AccessRecord[]>([])
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [isLoading, setIsLoading] = useState(true) // Para verificar o login inicial
 
-    // --- EFEITO INICIAL ---
-    // Verifica se o usuário já está logado (no localStorage)
     useEffect(() => {
         const user = loadCurrentUser()
         if (user && user.role === 'operator') {

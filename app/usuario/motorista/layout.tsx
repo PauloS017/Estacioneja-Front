@@ -1,13 +1,19 @@
 "use client"
 
-import React from "react";
+import type React from "react"
+import { MotoristaProvider } from "@/context/MotoristaContext"
+import Header from "@/components/motorista/header"
+import { signOut } from "next-auth/react"
 
 export default function MotoristaLayout({
-    children
+  children,
 }: {
-    children: React.ReactNode
+  children: React.ReactNode
 }) {
-    return (
-        <>{children}</>
-    )
+  return (
+    <MotoristaProvider>
+      <Header onLogout={signOut} />
+      {children}
+    </MotoristaProvider>
+  )
 }

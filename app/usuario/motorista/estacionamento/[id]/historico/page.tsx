@@ -55,7 +55,7 @@ const allHistoryData: HistoryEntry[] = [
 
 // 3. FUNÇÃO 'getParkingName' CORRIGIDA (Resolve o erro 'string | void')
 // Garantimos que ela SEMPRE retorna uma string (nunca 'void' ou 'undefined')
-const getParkingName = (id: number): string => {
+const getParkingName = (id: string): string => {
     const parkingMap: Record<number, string> = {
         1: "(Naviraí) IFMS - Instituto Federal",
         2: "(001 - Sede) COPASUL - Cooperativa",
@@ -67,7 +67,7 @@ const getParkingName = (id: number): string => {
 
 export default function ParkingHistoryPage() {
     const params = useParams()
-    const parkingId = params.id ? Number(params.id) : null
+    const parkingId = params.id ? params.id : null
 
     // Agora o TypeScript sabe que 'allHistoryData' é 'HistoryEntry[]',
     // então 'historyData' também será 'HistoryEntry[]' (sem erro de 'any[]')

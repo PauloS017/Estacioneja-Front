@@ -1,0 +1,1 @@
+export type TipoAcesso = "MASTER" | "AUDITORIA" | "GUARITA" | "EMBARCADO";

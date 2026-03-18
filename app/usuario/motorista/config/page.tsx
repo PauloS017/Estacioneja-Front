@@ -1,212 +1,264 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
-import { ArrowLeft, Plus, Star, Trash2, Check } from "lucide-react"
+import { ArrowLeft, Plus, Check } from "lucide-react"
+
 import { getGravatarUrl } from "@/lib/gravatar"
+import { useUser, useEditableUser } from "@/server/features/usuario/use-usuario"
+import { useVehicles } from "@/hooks/use-vehicles"
+import { useVincles } from "@/hooks/use-vincles"
+
 import { formatCPF, formatPhone } from "@/lib/formatting"
-import { useMotorista } from "@/context/MotoristaContext"
+
+type FormState = {
+  name: string
+  email: string
+  telefone: string
+  cpf: string
+}
 
 export default function ConfigPage() {
+  const { user } = useUser()
+  const { updateUser, isLoading: isSaving } = useEditableUser()
 
-    const {
-        userProfile,
-        vehicles,
-        handleSaveProfile,
-        handleSetPrimaryVehicle,
-        handleDeleteVehicle,
-        handleChangeAvatar,
-    } = useMotorista()
+  const { veiculos } = useVehicles()
+  useVincles()
 
-    const [formData, setFormData] = useState(userProfile)
-    const [showSaveMessage, setShowSaveMessage] = useState(false)
+  const [formData, setFormData] = useState<FormState | null>(null)
+  const [initialized, setInitialized] = useState(false)
+  const [showSaveMessage, setShowSaveMessage] = useState(false)
 
-    // A função 'handleInputChange' agora só precisa formatar o telefone,
-    // já que o CPF não é mais editável.
-    const handleInputChange = (field: string, value: string) => {
-        let formattedValue = value
-        if (field === "phone") {
-            formattedValue = formatPhone(value)
-        }
-        setFormData({ ...formData, [field]: formattedValue })
+  useEffect(() => {
+    if (user && !initialized) {
+      setFormData({
+        name: user.name ?? "",
+        email: user.email ?? "",
+        telefone: user.telefone ?? "",
+        cpf: user.cpf ?? ""
+      })
+      setInitialized(true)
     }
+  }, [user, initialized])
 
-    const onChangeAvatarClick = () => {
-        handleChangeAvatar()
-        const randomSuffix = Math.random().toString(36).substring(2, 8)
-        const [emailBase] = formData.email.split("@")
-        const newEmail = `${emailBase}+${randomSuffix}@gmail.com`
-        setFormData({ ...formData, email: newEmail })
-    }
+  function handleInputChange<K extends keyof FormState>(
+    field: K,
+    value: string
+  ) {
+    setFormData((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: value,
+          }
+        : prev
+    )
+  }
 
-    const handleSaveProfileClick = () => {
-        handleSaveProfile(formData)
-        setShowSaveMessage(true)
-        setTimeout(() => setShowSaveMessage(false), 3000)
-    }
+  const hasChanges = useMemo(() => {
+    if (!user || !formData) return false
 
     return (
-        <main className="max-w-2xl mx-auto px-6 py-8">
-            <Link
-                href="/usuario/motorista"
-                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-8 font-semibold"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                Voltar
-            </Link>
-
-            <h1 className="text-3xl font-bold text-center mb-8">Configurações do Perfil</h1>
-
-            {/* Seção de Informações Pessoais */}
-            <div className="bg-white border border-gray-200 rounded-lg p-8 mb-8">
-                <h2 className="text-xl font-bold text-orange-500 mb-6">Informações Pessoais</h2>
-
-                <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-gray-200">
-                    <img
-                        src={getGravatarUrl(userProfile.email) || "/placeholder.svg"}
-                        alt="User Avatar"
-                        className="w-32 h-32 rounded-full border-2 border-emerald-600 object-cover"
-                    />
-                    <button
-                        onClick={onChangeAvatarClick}
-                        className="px-4 py-2 border-2 border-emerald-600 text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition"
-                    >
-                        📷 Alterar Foto
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nome Completo</label>
-                        <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => handleInputChange("name", e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black"
-                        />
-                    </div>
-
-                    {/* --- INÍCIO DA CORREÇÃO --- */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">CPF</label>
-                        <input
-                            type="text"
-                            value={formData.cpf}
-                            placeholder="###.###.###-##"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none 
-                                       disabled:bg-gray-100 disabled:opacity-70 disabled:cursor-not-allowed text-black"
-                            disabled // <-- PROPRIEDADE ADICIONADA
-                        // O 'onChange' foi removido pois o campo é desabilitado
-                        />
-                    </div>
-                    {/* --- FIM DA CORREÇÃO --- */}
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => handleInputChange("email", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Telefone</label>
-                            <input
-                                type="tel"
-                                value={formData.phone}
-                                onChange={(e) => handleInputChange("phone", e.target.value)}
-                                placeholder="(##) #####-####"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Endereço</label>
-                        <input
-                            type="text"
-                            value={formData.address}
-                            onChange={(e) => handleInputChange("address", e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black"
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <button
-                            onClick={handleSaveProfileClick}
-                            className="w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2"
-                        >
-                            Salvar Alterações
-                        </button>
-                        {showSaveMessage && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg animate-pulse">
-                                <div className="flex items-center gap-2 text-emerald-600 font-bold">
-                                    <Check className="w-6 h-6" />
-                                    Perfil Atualizado
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Seção Meus Veículos */}
-            <div className="bg-white border border-gray-200 rounded-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-orange-500">Meus Veículos</h2>
-                    <Link
-                        href="/usuario/motorista/veiculo-novo"
-                        className="flex items-center gap-2 px-4 py-2 border-2 border-emerald-600 text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Novo Veículo
-                    </Link>
-                </div>
-
-                <div className="space-y-4">
-                    {vehicles.map((vehicle) => (
-                        <div
-                            key={vehicle.id}
-                            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                        >
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl">{vehicle.type === "car" ? "🚗" : "🏍️"}</span>
-                                <div>
-                                    <p className="font-bold text-gray-900">{vehicle.plate}</p>
-                                    <p className="text-sm text-gray-600">
-                                        {vehicle.model} - {vehicle.color}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                {vehicle.isPrincipal ? (
-                                    <span className="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold">
-                                        <Star className="w-4 h-4 fill-current" />
-                                        Principal
-                                    </span>
-                                ) : (
-                                    <button
-                                        onClick={() => handleSetPrimaryVehicle(vehicle.id)}
-                                        className="px-3 py-1 border border-emerald-600 text-emerald-600 rounded-full text-sm font-semibold hover:bg-emerald-50 transition flex items-center gap-1"
-                                    >
-                                        <Star className="w-4 h-4" />
-                                        Definir como Principal
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => handleDeleteVehicle(vehicle.id)}
-                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </main>
+      formData.name !== (user.name ?? "") ||
+      formData.email !== (user.email ?? "") ||
+      formData.telefone !== (user.telefone ?? "") ||
+      formData.cpf !== (user.cpf ?? "")
     )
+  }, [user, formData])
+
+  async function handleSaveProfileClick() {
+    if (!user || !formData || !hasChanges || isSaving) return
+
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      telefone: formData.telefone.trim(),
+      cpf: formData.cpf.trim(), 
+    }
+
+    try {
+      console.log(user.id);
+      await updateUser(user.id, payload as any)
+
+      setShowSaveMessage(true)
+      setTimeout(() => setShowSaveMessage(false), 3000)
+    } catch (error) {
+      console.error("Erro ao atualizar perfil", error)
+    }
+  }
+
+  const isFormReady = !!formData
+
+  return (
+    <main className="max-w-2xl mx-auto px-6 py-8">
+      <Link
+        href="/usuario/motorista"
+        className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-8 font-semibold"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Voltar
+      </Link>
+
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Configurações do Perfil
+      </h1>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-8 mb-8">
+        <h2 className="text-xl font-bold text-orange-500 mb-6">
+          Informações Pessoais
+        </h2>
+
+        {!isFormReady ? (
+          <SkeletonProfile />
+        ) : (
+          <>
+            <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-gray-200">
+              <img
+                src={getGravatarUrl(formData.email) || "/placeholder.svg"}
+                alt="User Avatar"
+                className="w-32 h-32 rounded-full border-2 border-emerald-600 object-cover"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Input
+                label="Nome Completo"
+                value={formData.name}
+                onChange={(v) => handleInputChange("name", v)}
+              />
+
+              <Input
+                label="CPF"
+                value={formatCPF(formData.cpf) ?? ""}
+                onChange={(v) => handleInputChange("cpf", v)}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(v) => handleInputChange("email", v)}
+                />
+
+                <Input
+                  label="Telefone"
+                  value={formatPhone(formData.telefone)}
+                  onChange={(v) => handleInputChange("telefone", v)}
+                  placeholder="(##) #####-####"
+                />
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={handleSaveProfileClick}
+                  disabled={!hasChanges || isSaving}
+                  className="w-full mt-6 bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {isSaving ? "Salvando..." : "Salvar Alterações"}
+                </button>
+
+                {showSaveMessage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg animate-pulse">
+                    <div className="flex items-center gap-2 text-emerald-600 font-bold">
+                      <Check className="w-6 h-6" />
+                      Perfil Atualizado
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* VEÍCULOS */}
+      <div className="bg-white border border-gray-200 rounded-lg p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-orange-500">
+            Meus Veículos
+          </h2>
+
+          <Link
+            href="/usuario/motorista/veiculo-novo"
+            className="flex items-center gap-2 px-4 py-2 border-2 border-emerald-600 text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition"
+          >
+            <Plus className="w-5 h-5" />
+            Novo Veículo
+          </Link>
+        </div>
+
+        <div className="space-y-4">
+          {veiculos?.map((vehicle) => (
+            <div
+              key={vehicle.id}
+              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">
+                  {vehicle.tipoVeiculo === "CARRO" ? "🚗" : "🏍️"}
+                </span>
+                <div>
+                  <p className="font-bold text-gray-900">
+                    {vehicle.placa}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {vehicle.modelo} - {vehicle.cor}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function SkeletonProfile() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="h-32 w-32 bg-gray-200 rounded-full mx-auto" />
+      <div className="h-10 bg-gray-200 rounded" />
+      <div className="h-10 bg-gray-200 rounded" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="h-10 bg-gray-200 rounded" />
+        <div className="h-10 bg-gray-200 rounded" />
+      </div>
+    </div>
+  )
+}
+
+type InputProps = {
+  label: string
+  value: string
+  onChange?: (value: string) => void
+  type?: string
+  placeholder?: string
+  disabled?: boolean
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  disabled,
+}: InputProps) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value ?? ""}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(e) => onChange?.(e.target.value)}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black disabled:bg-gray-100 disabled:opacity-70 disabled:cursor-not-allowed"
+      />
+    </div>
+  )
 }

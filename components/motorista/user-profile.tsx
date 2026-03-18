@@ -3,12 +3,13 @@
 import { Settings, QrCode, Copy } from "lucide-react"
 import { getGravatarUrl } from "../../lib/gravatar"
 import { useState } from "react"
+import { IUsuario } from "@/interfaces/iusuario"
 
 interface UserProfileProps {
   onNavigate: (screen: "home" | "config" | "register-vehicle") => void
-  userProfile: any
-  connectedParkingsCount: number
-  vehiclesCount: number
+  userProfile: IUsuario
+  connectedParkingsCount?: number
+  vehiclesCount?: number
 }
 
 export default function UserProfile({
@@ -59,7 +60,7 @@ export default function UserProfile({
             </div>
             <div className="flex items-center gap-3 text-gray-700">
               <span>📞</span>
-              <span>{userProfile.phone}</span>
+              <span>{userProfile.telefone}</span>
             </div>
           </div>
 

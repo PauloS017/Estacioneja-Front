@@ -1,0 +1,1 @@
+export type TipoVeiculo =  "CARRO" | "MOTO" | "ONIBUS" | "CAMINHAO"| "TRATOR";

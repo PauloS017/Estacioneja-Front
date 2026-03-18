@@ -4,49 +4,40 @@ import { useState } from "react"
 import { useRouter } from "next/navigation" // Importe o hook de roteamento
 import { Search } from "lucide-react"
 import UserProfile from "@/components/motorista/user-profile"
+import { useUser } from "@/server/features/usuario/use-usuario"
+import { useVehicles } from "@/hooks/use-vehicles"
+import { useVincles } from "@/hooks/use-vincles"
 import ParkingCard from "@/components/motorista/parking-card"
-import { useMotorista } from "@/context/MotoristaContext" // Importe o "cérebro"
-
-// Não precisamos mais de props como 'onNavigate', 'userProfile', etc.
-
+import { IEstacionamento } from "@/interfaces/iestacionamento"
+import { usePublicParks } from "@/server/features/estacionamentos/use-estacionamento"
 export default function MotoristaHomePage() {
-    const router = useRouter() // Hook para navegação
+    const router = useRouter() 
 
-    // 1. Buscamos todos os dados e funções direto do "cérebro" (Context)
-    const {
-        userProfile,
-        vehicles,
-        connectedParkings,
-        publicParkings,
-        handleConnectParking,
-        handleDisconnectParking,
-    } = useMotorista()
+    const { user } = useUser();
+    const { veiculos } = useVehicles();
+    const { estacionamentos } = useVincles();
 
-    // 2. O estado do campo de busca é local, o que está correto.
+    const { data: estacionamentosPublicos } = usePublicParks();
+
+    console.log(estacionamentosPublicos)
+
     const [connectedSearch, setConnectedSearch] = useState("")
     const [publicSearch, setPublicSearch] = useState("")
 
-    const filteredConnected = connectedParkings.filter((p) =>
-        p.name.toLowerCase().includes(connectedSearch.toLowerCase()),
+    const filteredConnected = estacionamentos?.filter((p) =>
+        p.empresa.nome.toLowerCase().includes(connectedSearch.toLowerCase()),
     )
 
-    const filteredPublic = publicParkings.filter((p) =>
-        p.name.toLowerCase().includes(publicSearch.toLowerCase())
-    )
 
-    // 3. Funções de navegação agora usam o router
-    const handleSelectParking = (parkingId: number) => {
-        // Navega para a URL: /usuario/motorista/estacionamento/[id]
+    const handleSelectParking = (parkingId: string) => {
         router.push(`/usuario/motorista/estacionamento/${parkingId}`)
     }
 
     const handleNavigate = (screen: "config" | "home" | "register-vehicle") => {
-        // Navega para a URL: /usuario/motorista/config, /home ou /register-vehicle
         router.push(`/usuario/motorista/${screen}`)
     }
 
-    // 4. Lidamos com o estado de carregamento
-    if (!userProfile) {
+    if (!user) {
         return (
             <main className="max-w-7xl mx-auto px-6 py-8">
                 <div>Carregando perfil...</div>
@@ -54,17 +45,13 @@ export default function MotoristaHomePage() {
         )
     }
 
-    // 5. O JSX é copiado de 'home-screen.tsx'
     return (
         <main className="max-w-7xl mx-auto px-6 py-8">
-            {/* O UserProfile agora recebe os dados do contexto.
-              Passamos as funções de navegação atualizadas.
-            */}
             <UserProfile
                 onNavigate={handleNavigate}
-                userProfile={userProfile}
-                connectedParkingsCount={connectedParkings.length}
-                vehiclesCount={vehicles.length}
+                userProfile={user}
+                connectedParkingsCount={estacionamentos?.length}
+                vehiclesCount={veiculos?.length }
             />
 
             {/* Seção de Estacionamentos Conectados */}
@@ -84,18 +71,18 @@ export default function MotoristaHomePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {filteredConnected.map((parking) => (
+                    {filteredConnected?.map((parking) => (
                         <div
                             key={parking.id}
                             className="cursor-pointer transition-transform hover:scale-105 relative group"
-                            onClick={() => handleSelectParking(parking.id)} // Função atualizada
+                            onClick={() => handleSelectParking(parking.id)} 
                         >
                             <ParkingCard {...parking} />
-                            {parking.category === "public" && (
+                            {parking.privacidade === "PUBLICO" && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation()
-                                        handleDisconnectParking(parking.id) // Função do contexto
+                                        
                                     }}
                                     className="absolute top-4 right-4 px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
                                 >
@@ -109,7 +96,6 @@ export default function MotoristaHomePage() {
 
             <div className="border-t-2 border-gray-300 my-8" />
 
-            {/* Seção de Estacionamentos Públicos */}
             <section className="mt-12">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold">
@@ -128,11 +114,11 @@ export default function MotoristaHomePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {filteredPublic.map((parking) => (
+                    {estacionamentosPublicos?.map((parking: IEstacionamento) => (
                         <div key={parking.id} className="relative group">
                             <ParkingCard {...parking} />
                             <button
-                                onClick={() => handleConnectParking(parking.id)} // Função do contexto
+                                onClick={() => alert("Por enquanto nada")} 
                                 className="absolute top-4 right-4 px-3 py-1 bg-orange-500 text-white text-xs font-semibold rounded hover:bg-orange-600 transition opacity-0 group-hover:opacity-100"
                             >
                                 + Conectar

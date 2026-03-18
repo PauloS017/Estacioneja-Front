@@ -2,11 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from 'sonner';
 
-// 1. IMPORTE OS TRÊS PROVEDORES
-import { MotoristaProvider } from "@/context/MotoristaContext"
+import { Providers } from "./providers"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -19,24 +16,11 @@ export const metadata: Metadata = {
   description: "Gerencie vagas de estacionamento em sua universidade de forma simples e eficiente",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-
-            <MotoristaProvider>
-                <div className="flex min-h-screen flex-col">
-                  <main className="flex-1">{children}</main>
-                  <Toaster />
-                </div>
-            </MotoristaProvider>
-
-        </ThemeProvider>
+           <Providers>{children}</Providers>
       </body>
     </html>
   )

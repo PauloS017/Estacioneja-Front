@@ -6,7 +6,7 @@ import { X } from "lucide-react"
 import Swal from "sweetalert2"
 import { type AccessRecord } from "@/lib/storage"
 import { useOperador } from "@/context/OperadorContext"
-import { useAuth } from "@/context/AuthContext"
+import { useUser } from "@/server/features/usuario/use-usuario"
 
 interface VisitorModalProps {
     isOpen: boolean
@@ -21,7 +21,7 @@ export default function VisitorModal({
 }: VisitorModalProps) {
 
     const { addAccessRecord, addNotification } = useOperador()
-    const { currentUser } = useAuth()
+    const { user } = useUser()
 
     // 1. CORREÇÃO: Adicionei os campos que faltavam ao estado inicial
     const [formData, setFormData] = useState({
@@ -72,7 +72,7 @@ export default function VisitorModal({
             phone: formData.phone || "Não informado", // Campo agora presente
             date,
             time,
-            operator: currentUser?.name || "Operador",
+            operator: user?.name || "Operador",
             status: "authorized",
             tag: "Visitante",
             entryType: "Entrada",

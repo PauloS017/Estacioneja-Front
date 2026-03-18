@@ -6,10 +6,8 @@ import { useEffect, useState } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { CheckCircle2, ArrowLeft, Mail, Phone, Car } from "lucide-react"
 import md5 from "md5"
-// 2. Importamos as funções do "banco de dados" (localStorage)
 import { getRecordById, getRecordsByPlate, type AccessRecord } from "@/lib/storage"
 
-// 3. Copiamos a função 'getGravatarUrl'
 function getGravatarUrl(email: string, size = 128): string {
     const trimmedEmail = email.toLowerCase().trim()
     const hash = md5(trimmedEmail)
@@ -28,7 +26,6 @@ export default function UserDetailPage() {
     const [userAccessHistory, setUserAccessHistory] = useState<AccessRecord[]>([])
 
     useEffect(() => {
-        // 4. Busca os dados quando a página carrega
         const record = getRecordById(recordId)
         if (record) {
             setCurrentRecord(record)
@@ -36,12 +33,11 @@ export default function UserDetailPage() {
             const history = getRecordsByPlate(record.plate)
             setUserAccessHistory(history)
         }
-    }, [recordId]) // Roda de novo se o ID mudar
+    }, [recordId]) 
 
     // 5. Tela de "Não encontrado"
     if (!currentRecord) {
         return (
-            // O <Header /> foi removido daqui
             <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Usuário não encontrado</h2>
@@ -56,7 +52,6 @@ export default function UserDetailPage() {
         )
     }
 
-    // 6. JSX Completo (sem o <Header>)
     return (
         <div className="flex-1 overflow-auto p-8">
             <button
@@ -67,7 +62,6 @@ export default function UserDetailPage() {
                 <span className="font-medium">Voltar ao histórico</span>
             </button>
 
-            {/* Card de Perfil do Usuário */}
             <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-8 mb-8">
                 <div className="flex items-start gap-6">
                     <Avatar className="w-24 h-24">
@@ -129,7 +123,6 @@ export default function UserDetailPage() {
                 </div>
             </div>
 
-            {/* Seção de Histórico de Acesso */}
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Histórico de Acessos</h2>
 

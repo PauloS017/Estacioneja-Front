@@ -5,19 +5,16 @@ import { useState } from "react"
 import Link from "next/link" // Importe o Link para navegação
 import { useRouter } from "next/navigation" // Importe o Router para redirecionar
 import { ArrowLeft } from "lucide-react"
-import { useMotorista } from "@/context/MotoristaContext" // Importe o "cérebro"
+import { useCreateVehicle } from "@/server/features/veiculos/use-vehicles"
+import { TipoVeiculo } from "@/types/tipo-veiculo"
+import { IVeiculo } from "@/interfaces/iveiculo"
 
-// Não precisamos mais de 'onNavigate' ou 'onAddVehicle'
-// Esta página é independente
 
 export default function RegisterVehiclePage() {
-    const router = useRouter() // Hook para navegação programática
+    const router = useRouter() 
 
-    // 1. Pegamos a função 'handleAddVehicle' do "cérebro"
-    const { handleAddVehicle } = useMotorista()
+    const { createVehicle } = useCreateVehicle();
 
-    // 2. O estado 'formData' é LOCAL desta página, o que é perfeito.
-    // Este código é copiado de 'register-vehicle-screen.tsx'
     const [formData, setFormData] = useState({
         plate: "",
         type: "",
@@ -33,26 +30,22 @@ export default function RegisterVehiclePage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        const newVehicle = {
-            id: Date.now(),
-            plate: formData.plate,
-            type: formData.type as "car" | "bike",
-            model: formData.model,
-            color: formData.color,
-            isPrincipal: false,
+        const newVehicle: IVeiculo = {
+            placa: formData.plate,
+            tipoVeiculo: formData.type as TipoVeiculo,
+            modelo: formData.model,
+            cor: formData.color,
+            observacao: formData.observations,
         }
 
-        // 3. Chamamos a função do "cérebro" para atualizar o estado global
-        handleAddVehicle(newVehicle)
+        createVehicle(newVehicle)
 
-        // 4. Usamos o router para navegar de volta à página de config
         router.push("/usuario/motorista/config")
     }
 
-    // O JSX é copiado de 'register-vehicle-screen.tsx'
     return (
         <main className="max-w-2xl mx-auto px-6 py-8">
-            {/* 5. Usamos o Link para a navegação de "Voltar" */}
+ 
             <Link
                 href="/usuario/motorista/config"
                 className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-8 font-semibold"
@@ -85,14 +78,14 @@ export default function RegisterVehiclePage() {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de Veículo</label>
                             <select
                                 name="type"
-                                value={formData.type}
+                                value={formData.type as TipoVeiculo}
                                 onChange={handleChange}
                                 required
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-black"
                             >
                                 <option value="">Selecione</option>
-                                <option value="car">Carro</option>
-                                <option value="bike">Moto</option>
+                                <option value="CARRO">Carro</option>
+                                <option value="MOTO">Moto</option>
                             </select>
                         </div>
                     </div>

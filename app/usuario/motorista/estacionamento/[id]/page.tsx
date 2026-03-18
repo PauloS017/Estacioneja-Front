@@ -1,60 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link" // Usar Link para navegação
-import { useParams, useRouter } from "next/navigation" // Hooks para roteamento
-import { ChevronLeft, ChevronRight, Car, Bike, Clock } from "lucide-react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { ChevronLeft, ChevronRight, Car, Bike, Clock, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useApiQuery } from "@/server/api/queries/apiQuery"
+import { IEstacionamento } from "@/interfaces/iestacionamento"
 
-// 1. DADOS ESTÁTICOS (do seu arquivo original)
-// (Quando fizermos o Tópico 1, isso virá de uma API)
-const parkingData: Record<number, any> = {
-    1: {
-        id: 1,
-        name: "(Naviraí) IFMS - Instituto Federal de Mato Grosso do Sul",
-        address: "R. Hilda, 203 - Naviraí, MS",
-        description: "Instituto Federal com estacionamento seguro e bem localizado no centro da cidade.",
-        images: ["/estacionamento1.jpg", "/parking-facility-2.jpg", "/estacionamento3.jpg"], // Imagens do seu 'public'
-        status: "Moderado",
-        totalSpots: 200,
-        occupiedSpots: 155,
-        availableSpots: 45,
-        carSpots: 35,
-        bikeSpots: 10,
-        occupancy: 78,
-    },
-    2: {
-        id: 2,
-        name: "(001 - Sede) COPASUL - Cooperativa",
-        address: "R. Hilda, 203 - Naviraí, MS",
-        description: "Cooperativa com área ampla para estacionamento de veículos.",
-        images: ["/estacionamento2.jpg", "/parking-facility-2.jpg", "/vehicle-parking-2.jpg"],
-        status: "Quase Cheio",
-        totalSpots: 80,
-        occupiedSpots: 68,
-        availableSpots: 12,
-        carSpots: 8,
-        bikeSpots: 4,
-        occupancy: 85,
-    },
-    3: {
-        id: 3,
-        name: "(015 - Fiação) COPASUL - Cooperativa",
-        address: "R. Hilda, 203 - Naviraí, MS",
-        description: "Estacionamento com lotação completa no momento.",
-        images: ["/estacionamento3.jpg", "/parking-facility-2.jpg", "/estacionamento1.jpg"],
-        status: "Lotado",
-        totalSpots: 150,
-        occupiedSpots: 150,
-        availableSpots: 0,
-        carSpots: 0,
-        bikeSpots: 0,
-        occupancy: 100,
-    },
-    // Adicione os outros estacionamentos (4, 5, 6, 7) aqui se quiser que funcionem
-}
-
-// 2. FUNÇÕES HELPERS (do seu arquivo original)
 function getStatusColor(occupancy: number): string {
     if (occupancy > 75) return "bg-red-100 text-red-800 border border-red-300"
     if (occupancy > 50) return "bg-orange-100 text-orange-800 border border-orange-300"
@@ -67,62 +20,52 @@ function getStatusLabel(occupancy: number): string {
     return "Leve"
 }
 
-// 3. COMPONENTE DA PÁGINA
 export default function ParkingDetailPage() {
-    const router = useRouter() // Hook para navegação
-    const params = useParams() // Hook para pegar o [id] da URL
-
-    // Pega o ID da URL. Ex: .../estacionamento/1 -> parkingId será 1
-    const parkingId = params.id ? Number(params.id) : null
-
+    const router = useRouter()
+    const params = useParams()
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-    // Busca o estacionamento correspondente, ou usa o 1 como padrão
-    const parking = (parkingId && parkingData[parkingId]) ? parkingData[parkingId] : parkingData[1]
+    const parkingId = params.id
 
-    useEffect(() => {
-        // Garante que 'parking.images' existe antes de criar o intervalo
-        if (parking && parking.images && parking.images.length > 0) {
-            const interval = setInterval(() => {
-                setCurrentImageIndex((prev) => (prev + 1) % parking.images.length)
-            }, 5000)
-            return () => clearInterval(interval)
-        }
-    }, [parking.images])
+    const { data: parking, isLoading, isError } = useApiQuery<IEstacionamento>({
+        queryKey: ["estacionamento", String(parkingId)],
+        endpoint: `/api/v1/estacionamentos/${parkingId}`,
+    })
 
-    const nextImage = () => {
-        setCurrentImageIndex((prev) => (prev + 1) % parking.images.length)
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <p className="text-gray-500 font-medium">Carregando detalhes...</p>
+            </div>
+        )
     }
 
-    const prevImage = () => {
-        setCurrentImageIndex((prev) => (prev - 1 + parking.images.length) % parking.images.length)
-    }
-
-    // Função de navegação ATUALIZADA
-    const handleParkingHistory = (parkingId: number) => {
-        router.push(`/usuario/motorista/estacionamento/${parkingId}/historico`)
-    }
-
-    // Loader caso algo dê errado (boa prática)
-    if (!parking) {
+    if (isError || !parking) {
         return (
             <main className="max-w-4xl mx-auto px-6 py-8">
-                <Link
-                    href="/usuario/motorista"
-                    className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium mb-6"
-                >
-                    <ChevronLeft className="w-5 h-5" />
-                    Voltar
+                <Link href="/usuario/motorista" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium mb-6">
+                    <ChevronLeft className="w-5 h-5" /> Voltar
                 </Link>
-                <div>Estacionamento não encontrado.</div>
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                    O Sistema não encontrado ou erro ao carregar os dados.
+                </div>
             </main>
         )
     }
 
-    // 4. JSX COMPLETO (copiado do seu 'parking-detail-screen.tsx')
+    const enderecoBruto = parking.empresa.endereco
+    const enderecoFormatado = `${enderecoBruto?.logradouro} - ${enderecoBruto?.bairro}, ${enderecoBruto?.cidade}-${enderecoBruto?.uf}`
+    
+    const ocupacao = Math.round(
+        ((parking.capacidade - parking.capacidadeDisponivel) / parking.capacidade) * 100
+    )
+
+    // Fallback para imagens caso a API não retorne ou você queira usar as estáticas por enquanto
+    const displayImages = ["/estacionamento1.jpg", "/parking-facility-2.jpg", "/estacionamento3.jpg"]
+
     return (
         <main className="max-w-4xl mx-auto px-6 py-8">
-            {/* Botão "Voltar" atualizado com <Link> */}
             <Link
                 href="/usuario/motorista"
                 className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium mb-6"
@@ -131,110 +74,98 @@ export default function ParkingDetailPage() {
                 Voltar
             </Link>
 
-            {/* --- INÍCIO DO CONTEÚDO QUE FALTAVA --- */}
-
             {/* Carrossel de Imagens */}
             <div className="relative bg-gray-900 rounded-lg overflow-hidden mb-8 aspect-video flex items-center justify-center group">
                 <img
-                    src={parking.images[currentImageIndex] || "/placeholder.jpg"}
-                    alt={`${parking.name} - Imagem ${currentImageIndex + 1}`}
+                    src={displayImages[currentImageIndex]}
+                    alt={`${parking.empresa.nome}`}
                     className="w-full h-full object-cover"
                 />
-                {parking.images.length > 1 && (
+                
+                {displayImages.length > 1 && (
                     <>
                         <button
-                            onClick={prevImage}
+                            onClick={() => setCurrentImageIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length)}
                             className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100"
                         >
                             <ChevronLeft className="w-6 h-6" />
                         </button>
                         <button
-                            onClick={nextImage}
+                            onClick={() => setCurrentImageIndex((prev) => (prev + 1) % displayImages.length)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100"
                         >
                             <ChevronRight className="w-6 h-6" />
                         </button>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                            {parking.images.map((_: string, idx: number) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => setCurrentImageIndex(idx)}
-                                    className={`w-2 h-2 rounded-full transition ${idx === currentImageIndex ? "bg-white" : "bg-white/50"
-                                        }`}
-                                />
-                            ))}
-                        </div>
                     </>
                 )}
             </div>
 
-            {/* Informações do Estacionamento */}
+            {/* Informações Principais */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{parking.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{parking.empresa.nome}</h1>
                 <div className="flex items-center gap-2 text-gray-600 mb-4">
-                    <span>{parking.address}</span>
+                    <span>{enderecoFormatado}</span>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{parking.description}</p>
+                <p className="text-gray-700 leading-relaxed">{parking.descricao || "Sem descrição disponível."}</p>
             </div>
 
-            {/* Status e Disponibilidade */}
+            {/* Grid de Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className={`p-6 rounded-lg ${getStatusColor(parking.occupancy)}`}>
+                <div className={`p-6 rounded-lg ${getStatusColor(ocupacao)}`}>
                     <p className="text-sm font-medium opacity-75 mb-2">Status de Ocupação</p>
-                    <p className="text-2xl font-bold">{getStatusLabel(parking.occupancy)}</p>
+                    <p className="text-2xl font-bold">{getStatusLabel(ocupacao)}</p>
                     <div className="mt-4 bg-black/10 rounded-full h-2 overflow-hidden">
                         <div
-                            className={`h-full transition-all ${parking.occupancy > 75 ? "bg-red-600" : parking.occupancy > 50 ? "bg-orange-600" : "bg-emerald-600"
-                                }`}
-                            style={{ width: `${parking.occupancy}%` }}
+                            className={`h-full transition-all duration-500 ${
+                                ocupacao > 75 ? "bg-red-600" : ocupacao > 50 ? "bg-orange-600" : "bg-emerald-600"
+                            }`}
+                            style={{ width: `${ocupacao}%` }}
                         />
                     </div>
-                    <p className="text-xs opacity-75 mt-2">{parking.occupancy}% ocupado</p>
+                    <p className="text-xs opacity-75 mt-2">{ocupacao}% ocupado</p>
                 </div>
 
                 <div className="bg-emerald-50 p-6 rounded-lg border border-emerald-200">
-                    <p className="text-sm font-medium text-emerald-700 mb-4">Vagas Disponíveis</p>
-                    <p className="text-4xl font-bold text-emerald-600 mb-1">{parking.availableSpots}</p>
-                    <p className="text-xs text-emerald-600">de {parking.totalSpots} vagas</p>
+                    <p className="text-sm font-medium text-emerald-700 mb-4">Vagas Disponíveis Agora</p>
+                    <p className="text-4xl font-bold text-emerald-600 mb-1">{parking.capacidadeDisponivel}</p>
+                    <p className="text-xs text-emerald-600">de {parking.capacidade} vagas totais</p>
                 </div>
             </div>
 
-            {/* Estatísticas Detalhadas */}
+            {/* Detalhes de Vagas */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
-                    <p className="text-gray-600 text-sm font-medium mb-1">Total de Vagas</p>
-                    <p className="text-2xl font-bold text-gray-900">{parking.totalSpots}</p>
+                    <p className="text-gray-600 text-sm font-medium mb-1">Capacidade</p>
+                    <p className="text-2xl font-bold text-gray-900">{parking.capacidade}</p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
-                    <p className="text-gray-600 text-sm font-medium mb-1">Vagas Ocupadas</p>
-                    <p className="text-2xl font-bold text-gray-900">{parking.occupiedSpots}</p>
+                    <p className="text-gray-600 text-sm font-medium mb-1">Em uso</p>
+                    <p className="text-2xl font-bold text-gray-900">{parking.capacidade - parking.capacidadeDisponivel}</p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 flex items-center gap-3">
                     <Car className="w-8 h-8 text-blue-500" />
                     <div>
                         <p className="text-gray-600 text-sm font-medium">Carros</p>
-                        <p className="text-2xl font-bold text-gray-900">{parking.carSpots}</p>
+                        <p className="text-xl font-bold text-gray-900">{parking.capacidadeDisponivel}</p>
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 flex items-center gap-3">
                     <Bike className="w-8 h-8 text-orange-500" />
                     <div>
                         <p className="text-gray-600 text-sm font-medium">Motos</p>
-                        <p className="text-2xl font-bold text-gray-900">{parking.bikeSpots}</p>
+                        <p className="text-xl font-bold text-gray-900">--</p>
                     </div>
                 </div>
             </div>
 
-            {/* --- FIM DO CONTEÚDO QUE FALTAVA --- */}
-
-            {/* Botão de Histórico (agora atualizado) */}
+            {/* Ações */}
             <div className="flex gap-4">
                 <Button
-                    onClick={() => handleParkingHistory(parking.id)}
+                    onClick={() => router.push(`/usuario/motorista/estacionamento/${parking.id}/historico`)}
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-6 flex items-center justify-center gap-2"
                 >
                     <Clock className="w-5 h-5" />
-                    Histórico
+                    Ver Histórico de Ocupação
                 </Button>
             </div>
         </main>

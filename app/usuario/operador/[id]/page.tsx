@@ -2,26 +2,16 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-// import Header from "@/components/operador/header" // 1. REMOVIDO - O Layout cuida disso
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { CheckCircle2, ArrowLeft, Mail, Phone, Car } from "lucide-react"
-import md5 from "md5"
-import { getRecordById, getRecordsByPlate, type AccessRecord } from "@/lib/storage"
-
-function getGravatarUrl(email: string, size = 128): string {
-    const trimmedEmail = email.toLowerCase().trim()
-    const hash = md5(trimmedEmail)
-    return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`
-}
+import { getGravatarUrl } from "@/lib/utils"
+import { getRecordById, getRecordsByPlate, type AccessRecord } from "@/lib/legacy/access-records"
 
 export default function UserDetailPage() {
-    const params = useParams() // Hook para ler a URL
-    const router = useRouter() // Hook para navegar
-
-    // O 'id' vem da URL (ex: .../operador/123)
+    const params = useParams()
+    const router = useRouter()
     const recordId = Number(params.id)
 
-    // Estados locais para guardar os dados
     const [currentRecord, setCurrentRecord] = useState<AccessRecord | null>(null)
     const [userAccessHistory, setUserAccessHistory] = useState<AccessRecord[]>([])
 
@@ -29,20 +19,17 @@ export default function UserDetailPage() {
         const record = getRecordById(recordId)
         if (record) {
             setCurrentRecord(record)
-            // Busca o histórico SÓ desse usuário (pela placa)
-            const history = getRecordsByPlate(record.plate)
-            setUserAccessHistory(history)
+            setUserAccessHistory(getRecordsByPlate(record.plate))
         }
-    }, [recordId]) 
+    }, [recordId])
 
-    // 5. Tela de "Não encontrado"
     if (!currentRecord) {
         return (
             <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Usuário não encontrado</h2>
                     <button
-                        onClick={() => router.push("/usuario/operador/historico")} // Rota corrigida
+                        onClick={() => router.push("/usuario/operador/historico")}
                         className="px-6 py-3 bg-emerald-500 text-white font-medium rounded-lg hover:bg-emerald-600 transition-colors"
                     >
                         Voltar ao histórico
@@ -55,7 +42,7 @@ export default function UserDetailPage() {
     return (
         <div className="flex-1 overflow-auto p-8">
             <button
-                onClick={() => router.push("/usuario/operador/historico")} // Rota corrigida
+                onClick={() => router.push("/usuario/operador/historico")}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
             >
                 <ArrowLeft className="w-5 h-5" />

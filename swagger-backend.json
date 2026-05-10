@@ -1,0 +1,3643 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "EstacioneJá API",
+        "description": "API REST para gerenciamento de estacionamentos inteligentes.\n\nPermite controle de empresas, estacionamentos, veículos, vínculos,\nequipamentos e registros de entrada/saída.\n\n**Autenticação:** A maioria dos endpoints requer um token JWT.\nObtenha o token via `POST /api/v1/auth/login` e informe-o no header\n`Authorization: Bearer {token}`.\n\n**Roles:**\n- `ADMIN` (TipoUsuario = ADMINISTRATIVO): acesso total\n- `USER` (TipoUsuario = COMUM): acesso limitado a recursos próprios\n",
+        "contact": {
+            "name": "EstacioneJá",
+            "email": "contato@estacioneja.com.br"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Veiculos",
+            "description": "Gerenciamento de veiculos dos usuarios. TipoVeiculo: CARRO | MOTO | ONIBUS | CAMINHAO | TRATOR. Cada veiculo pertence ao usuario autenticado no momento do cadastro."
+        },
+        {
+            "name": "Equipamentos",
+            "description": "Gerenciamento de equipamentos físicos (totens, cancelas, leitores NFC) vinculados a estacionamentos. TipoEquipamento: ENTRADA_SAIDA | AUTENTICADOR. TipoComunicacao: WIFI | ETHERNET | SERIAL | BLUETOOTH | ZIGBEE | DRY_CONTACT. TipoProtocolo: MQTT | HTTP | HTTPS | MODBUS | RS485 | WIEGAND | PROPRIETARIO. Requer role ADMIN."
+        },
+        {
+            "name": "Estacionamentos",
+            "description": "Gerenciamento de estacionamentos vinculados a empresas.\n\n**Privacidade:**\n- `PUBLICO`: qualquer veículo pode entrar (sem vínculo obrigatório)\n- `PRIVADO`: somente veículos com vínculo ativo podem acessar\n\n**Tipos de veículo permitidos (regraEstacionamento):** `CARRO`, `MOTO`, `ONIBUS`, `CAMINHAO`, `TRATOR`\n"
+        },
+        {
+            "name": "Vinculos",
+            "description": "Gerenciamento de vinculos entre veiculos e estacionamentos. Um vinculo autoriza um veiculo a entrar em um estacionamento privado. Sem vinculo, o registro de entrada e recusado com status 403."
+        },
+        {
+            "name": "Acessos",
+            "description": "Gerenciamento de acessos de usuários a uma empresa. Um acesso define qual papel o usuário\nexerce dentro da empresa.\n\n**Tipos de acesso (TipoAcesso):**\n- `MASTER`: administrador total da empresa\n- `AUDITORIA`: visualização de relatórios e logs\n- `GUARITA`: operação manual de entrada/saída\n- `EMBARCADO`: uso em dispositivos físicos (equipamentos)\n\nRequer role ADMIN.\n"
+        },
+        {
+            "name": "Registros",
+            "description": "Registro de entrada e saida de veiculos em estacionamentos. O sistema determina automaticamente o tipo de registro (ENTRADA ou SAIDA) com base no ultimo registro do veiculo. O veiculo deve possuir um vinculo ativo com o estacionamento para ser autorizado. Requer role ADMIN."
+        },
+        {
+            "name": "Autenticação",
+            "description": "Endpoints públicos para login e registro de usuários"
+        },
+        {
+            "name": "Empresas",
+            "description": "Gerenciamento de empresas clientes. Requer role ADMIN."
+        },
+        {
+            "name": "Usuarios",
+            "description": "Gerenciamento de usuarios do sistema."
+        }
+    ],
+    "paths": {
+        "/api/v1/veiculos/{id}": {
+            "get": {
+                "tags": [
+                    "Veiculos"
+                ],
+                "summary": "Buscar veiculo por ID",
+                "description": "Retorna os dados de um veiculo. O usuario autenticado deve ser o proprietario.",
+                "operationId": "listarPorId",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do veiculo",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "aa0e8400-e29b-41d4-a716-446655440004"
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (veiculo pertence a outro usuario)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Veiculo encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "aa0e8400-e29b-41d4-a716-446655440004",
+                                            "placa": "ABC-1234",
+                                            "modelo": "Civic",
+                                            "cor": "Prata",
+                                            "tipoVeiculo": "CARRO",
+                                            "observacao": "Carro da empresa",
+                                            "usuario": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                "name": "Joao Silva",
+                                                "email": "joao@empresa.com"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Veiculo nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Veiculo nao encontrado"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Veiculos"
+                ],
+                "summary": "Atualizar veiculo",
+                "description": "Atualiza modelo, cor e tipo de um veiculo. Somente o proprietario pode alterar.",
+                "operationId": "atualizar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do veiculo",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados atualizados do veiculo",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VeiculoUpdateDto"
+                            },
+                            "example": {
+                                "modelo": "Civic EXL",
+                                "cor": "Preto",
+                                "tipoVeiculo": "CARRO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Veiculo atualizado com sucesso"
+                    },
+                    "403": {
+                        "description": "Sem permissao (veiculo pertence a outro usuario)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "404": {
+                        "description": "Veiculo nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados invalidos"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Veiculos"
+                ],
+                "summary": "Excluir veiculo",
+                "description": "Remove um veiculo do sistema. Somente o proprietario pode excluir.",
+                "operationId": "deletar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do veiculo",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Veiculo removido com sucesso"
+                    },
+                    "403": {
+                        "description": "Sem permissao (veiculo pertence a outro usuario)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "404": {
+                        "description": "Veiculo nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/usuarios/{id}": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Buscar usuario por ID",
+                "description": "Retorna os dados de um usuario pelo UUID. Requer autenticacao.",
+                "operationId": "obterPorId",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Usuario nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Usuario nao encontrado"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Usuario encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                                            "name": "Joao Silva",
+                                            "cpf": "123.456.789-00",
+                                            "telefone": "(11) 99999-0000",
+                                            "email": "joao@empresa.com",
+                                            "tipoUsuario": "COMUM"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Atualizar usuario",
+                "description": "Atualiza os dados cadastrais de um usuario (nome, email, CPF, telefone).",
+                "operationId": "atualizar_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados atualizados do usuario",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UsuarioUpdateDto"
+                            },
+                            "example": {
+                                "name": "Joao Pedro Silva",
+                                "email": "joaopedro@empresa.com",
+                                "cpf": "123.456.789-00",
+                                "telefone": "(11) 98888-0000"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "404": {
+                        "description": "Usuario nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Usuario atualizado com sucesso"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "400": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "email",
+                                        "message": "Email Invalido"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Excluir usuario",
+                "description": "Remove permanentemente um usuario do sistema.",
+                "operationId": "deletar_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Usuario nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "204": {
+                        "description": "Usuario removido com sucesso"
+                    }
+                }
+            }
+        },
+        "/api/v1/estacionamentos/{id}": {
+            "get": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Buscar estacionamento por ID",
+                "description": "Retorna os dados de um estacionamento, incluindo capacidade disponível e empresa vinculada.",
+                "operationId": "obterPorId_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do estacionamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "770e8400-e29b-41d4-a716-446655440002"
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Estacionamento não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Estacionamento nao encontrado"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Estacionamento encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "770e8400-e29b-41d4-a716-446655440002",
+                                            "descricao": "Estacionamento Térreo - Ala Norte",
+                                            "privacidade": "PRIVADO",
+                                            "capacidade": 200,
+                                            "capacidadeDisponivel": 143,
+                                            "empresa": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                "nome": "Estacionamento Central Ltda",
+                                                "tipoEmpresa": "SHOPPING",
+                                                "cnpj": "12.345.678/0001-99",
+                                                "prefixo": "EST-CTR",
+                                                "plano": "MEDIO"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Atualizar privacidade do estacionamento",
+                "description": "Altera a privacidade do estacionamento entre `PUBLICO` e `PRIVADO`. Requer role ADMIN.",
+                "operationId": "atualizar_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do estacionamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Novo valor de privacidade",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EstacionamentoUpdateDto"
+                            },
+                            "example": {
+                                "privacidade": "PUBLICO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Estacionamento não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "Estacionamento atualizado com sucesso"
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Excluir estacionamento",
+                "description": "Remove permanentemente um estacionamento. Requer role ADMIN.",
+                "operationId": "deletar_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do estacionamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "204": {
+                        "description": "Estacionamento removido com sucesso"
+                    },
+                    "404": {
+                        "description": "Estacionamento não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    }
+                }
+            }
+        },
+        "/api/v1/equipamentos/{id}": {
+            "get": {
+                "tags": [
+                    "Equipamentos"
+                ],
+                "summary": "Buscar equipamento por ID",
+                "description": "Retorna os dados completos de um equipamento, incluindo configuração de conexão e estacionamento vinculado.",
+                "operationId": "obterPorId_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do equipamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "990e8400-e29b-41d4-a716-446655440003"
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Equipamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Equipamento nao encontrado"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Equipamento encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "990e8400-e29b-41d4-a716-446655440003",
+                                            "nome": "Cancela Entrada Principal",
+                                            "descricao": "Cancela automatica da entrada principal",
+                                            "modelo": "Automatiza AGL-1000",
+                                            "tipoEquipamento": "ENTRADA_SAIDA",
+                                            "conexaoHardware": {
+                                                "tipoComunicacao": "ETHERNET",
+                                                "tipoProtocolo": "MQTT",
+                                                "endereco": "192.168.1.50",
+                                                "porta": 1883,
+                                                "credenciais": "user:pass",
+                                                "enderecoMac": "AA:BB:CC:DD:EE:FF"
+                                            },
+                                            "estacionamento": {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                "descricao": "Estacionamento Terreo - Ala Norte"
+                                            },
+                                            "ativo": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Equipamentos"
+                ],
+                "summary": "Atualizar equipamento",
+                "description": "Atualiza as informacoes e configuracao de conexao de um equipamento existente.",
+                "operationId": "atualizar_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do equipamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados atualizados do equipamento",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EquipamentoUpdateDto"
+                            },
+                            "example": {
+                                "nome": "Cancela Entrada Principal v2",
+                                "descricao": "Cancela atualizada com firmware v2",
+                                "modelo": "Automatiza AGL-2000",
+                                "tipoEquipamento": "ENTRADA_SAIDA",
+                                "estacionamentoId": "770e8400-e29b-41d4-a716-446655440002",
+                                "conexao": {
+                                    "tipoComunicacao": "WIFI",
+                                    "tipoProtocolo": "MQTT",
+                                    "endereco": "192.168.1.51",
+                                    "porta": 1883,
+                                    "credenciais": "newuser:newpass",
+                                    "enderecoMac": "AA:BB:CC:DD:EE:FF"
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (requer ADMIN)"
+                    },
+                    "404": {
+                        "description": "Equipamento ou estacionamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "204": {
+                        "description": "Equipamento atualizado com sucesso"
+                    },
+                    "400": {
+                        "description": "Dados invalidos"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Equipamentos"
+                ],
+                "summary": "Excluir equipamento",
+                "description": "Remove um equipamento do sistema. A operacao nao desconecta o dispositivo fisico.",
+                "operationId": "deletar_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do equipamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (requer ADMIN)"
+                    },
+                    "404": {
+                        "description": "Equipamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "204": {
+                        "description": "Equipamento removido com sucesso"
+                    }
+                }
+            }
+        },
+        "/api/v1/empresas/{id}": {
+            "get": {
+                "tags": [
+                    "Empresas"
+                ],
+                "summary": "Buscar empresa por ID",
+                "description": "Retorna os dados completos de uma empresa, incluindo representante e endereço.",
+                "operationId": "listarEmpresa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Empresa nao encontrada"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Empresa encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                                            "nome": "Estacionamento Central Ltda",
+                                            "tipoEmpresa": "SHOPPING",
+                                            "representante": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                "name": "João Silva",
+                                                "cpf": "123.456.789-00",
+                                                "telefone": "(11) 99999-0000",
+                                                "email": "joao@empresa.com",
+                                                "tipoUsuario": "ADMINISTRATIVO"
+                                            },
+                                            "cnpj": "12.345.678/0001-99",
+                                            "prefixo": "EST-CTR",
+                                            "plano": "MEDIO",
+                                            "endereco": {
+                                                "id": 1,
+                                                "logradouro": "Av. Paulista, 1000",
+                                                "bairro": "Bela Vista",
+                                                "cidade": "São Paulo",
+                                                "uf": "SP",
+                                                "cep": "01310-100",
+                                                "latitude": -23.5634,
+                                                "longitude": -46.6545
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Empresas"
+                ],
+                "summary": "Atualizar empresa",
+                "description": "Atualiza o nome e tipo da empresa. Outros atributos (endereço, plano, CNPJ) não são alterados por este endpoint.",
+                "operationId": "atualizar_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados a atualizar",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmpresaUpdateDto"
+                            },
+                            "example": {
+                                "nome": "Estacionamento Central S/A",
+                                "tipoEmpresa": "EMPRESA_DEFAULT"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Empresa atualizada com sucesso"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    },
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Empresas"
+                ],
+                "summary": "Excluir empresa",
+                "description": "Remove permanentemente uma empresa e todos os seus dados relacionados.",
+                "operationId": "deletar_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    },
+                    "204": {
+                        "description": "Empresa removida com sucesso"
+                    },
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/empresas/{empresaId}/acessos/{id}": {
+            "put": {
+                "tags": [
+                    "Acessos"
+                ],
+                "summary": "Atualizar tipo de acesso",
+                "description": "Altera o tipo de acesso (permissão) de um usuário em uma empresa.",
+                "operationId": "atualizar_5",
+                "parameters": [
+                    {
+                        "name": "empresaId",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do acesso",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Novo tipo de acesso",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AcessoUpdateDto"
+                            },
+                            "example": {
+                                "tipoAcesso": "AUDITORIA"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Acesso atualizado com sucesso"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Acesso não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    },
+                    "400": {
+                        "description": "Dados inválidos"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Acessos"
+                ],
+                "summary": "Revogar acesso",
+                "description": "Remove o acesso de um usuário de uma empresa. A operação é irreversível.",
+                "operationId": "deletar_5",
+                "parameters": [
+                    {
+                        "name": "empresaId",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do acesso",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Acesso revogado com sucesso"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "Acesso não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)"
+                    }
+                }
+            }
+        },
+        "/api/v1/vinculos": {
+            "get": {
+                "tags": [
+                    "Vinculos"
+                ],
+                "summary": "Listar vinculos do usuario autenticado",
+                "description": "Retorna todos os vinculos (estacionamentos autorizados) dos veiculos do usuario autenticado.",
+                "operationId": "listarPorUsuario",
+                "responses": {
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VinculoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Lista de vinculos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VinculoOutputDTO"
+                                    }
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": [
+                                            {
+                                                "id": "dd0e8400-e29b-41d4-a716-446655440007",
+                                                "estacionamento": {
+                                                    "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                    "descricao": "Estacionamento Terreo - Ala Norte",
+                                                    "privacidade": "PRIVADO",
+                                                    "capacidade": 200,
+                                                    "capacidadeDisponivel": 143
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Vinculos"
+                ],
+                "summary": "Criar vinculo",
+                "description": "Autoriza um veiculo (identificado pela placa) a acessar um estacionamento privado.",
+                "operationId": "criar",
+                "requestBody": {
+                    "description": "Dados do vinculo",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VinculoDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "estacionamentoId": "770e8400-e29b-41d4-a716-446655440002",
+                                        "placaVeiculo": "ABC-1234"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "placaVeiculo",
+                                        "message": "Placa do Veiculo nao pode estar vazia."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VinculoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Vinculo criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VinculoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "dd0e8400-e29b-41d4-a716-446655440007",
+                                            "estacionamento": {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                "descricao": "Estacionamento Terreo - Ala Norte",
+                                                "privacidade": "PRIVADO",
+                                                "capacidade": 200,
+                                                "capacidadeDisponivel": 143
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Veiculo ou estacionamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Veiculo nao encontrado"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Vinculo ja existente para este veiculo e estacionamento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/veiculos": {
+            "post": {
+                "tags": [
+                    "Veiculos"
+                ],
+                "summary": "Cadastrar veiculo",
+                "description": "Cadastra um novo veiculo associado ao usuario autenticado.",
+                "operationId": "criar_1",
+                "requestBody": {
+                    "description": "Dados do veiculo",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VeiculoDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "placa": "ABC-1234",
+                                        "cor": "Prata",
+                                        "modelo": "Civic",
+                                        "tipoVeiculo": "CARRO",
+                                        "observacao": "Carro da empresa"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "placa",
+                                        "message": "Placa nao pode estar vazia."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Veiculo criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "aa0e8400-e29b-41d4-a716-446655440004",
+                                            "placa": "ABC-1234",
+                                            "modelo": "Civic",
+                                            "cor": "Prata",
+                                            "tipoVeiculo": "CARRO",
+                                            "observacao": "Carro da empresa",
+                                            "usuario": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Placa ja cadastrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Placa ja cadastrada no sistema."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/registro": {
+            "post": {
+                "tags": [
+                    "Registros"
+                ],
+                "summary": "Registrar entrada ou saida de veiculo",
+                "description": "Registra a movimentacao de um veiculo em um estacionamento. Se o ultimo registro do veiculo neste estacionamento foi ENTRADA, o sistema registra SAIDA e vice-versa. O veiculo deve ter um vinculo ativo com o estacionamento, caso contrario a operacao e recusada (403).",
+                "operationId": "criar_2",
+                "requestBody": {
+                    "description": "Placa do veiculo e ID do estacionamento",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegistroDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "placa": "ABC-1234",
+                                        "estacionamentoId": "770e8400-e29b-41d4-a716-446655440002"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "403": {
+                        "description": "Veiculo nao autorizado (sem vinculo com o estacionamento)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Esse veiculo nao esta autorizado a entrar pois nao possui vinculo com o estacionamento"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "placa",
+                                        "message": "Placa nao pode estar vazia."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Registro criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegistroOutputDTO"
+                                },
+                                "examples": {
+                                    "Entrada registrada": {
+                                        "description": "Entrada registrada",
+                                        "value": {
+                                            "id": "bb0e8400-e29b-41d4-a716-446655440005",
+                                            "veiculo": {
+                                                "id": "aa0e8400-e29b-41d4-a716-446655440004",
+                                                "placa": "ABC-1234",
+                                                "modelo": "Civic",
+                                                "cor": "Prata",
+                                                "tipoVeiculo": "CARRO",
+                                                "observacao": null,
+                                                "usuario": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                    "name": "Joao Silva"
+                                                }
+                                            },
+                                            "estacionamento": {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                "descricao": "Estacionamento Terreo - Ala Norte",
+                                                "capacidade": 200,
+                                                "capacidadeDisponivel": 142
+                                            },
+                                            "tipoRegistro": "ENTRADA",
+                                            "dataRegistro": "2026-03-24T08:30:00"
+                                        }
+                                    },
+                                    "Saida registrada": {
+                                        "description": "Saida registrada",
+                                        "value": {
+                                            "id": "cc0e8400-e29b-41d4-a716-446655440006",
+                                            "veiculo": {
+                                                "placa": "ABC-1234"
+                                            },
+                                            "estacionamento": {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                "capacidadeDisponivel": 143
+                                            },
+                                            "tipoRegistro": "SAIDA",
+                                            "dataRegistro": "2026-03-24T17:45:00"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegistroOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Veiculo ou estacionamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Veiculo nao encontrado"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/estacionamentos": {
+            "post": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Criar estacionamento",
+                "description": "Cria um novo estacionamento vinculado a uma empresa. Requer role ADMIN.",
+                "operationId": "criar_3",
+                "requestBody": {
+                    "description": "Dados do estacionamento",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EstacionamentoDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "empresaId": "550e8400-e29b-41d4-a716-446655440001",
+                                        "privacidade": "PRIVADO",
+                                        "descricao": "Estacionamento Térreo - Ala Norte",
+                                        "regraEstacionamento": [
+                                            "CARRO",
+                                            "MOTO"
+                                        ],
+                                        "capacidade": 200
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Dados inválidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "capacidade",
+                                        "message": "Capacidade não pode estar vazia."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Estacionamento criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "770e8400-e29b-41d4-a716-446655440002",
+                                            "descricao": "Estacionamento Térreo - Ala Norte",
+                                            "privacidade": "PRIVADO",
+                                            "capacidade": 200,
+                                            "capacidadeDisponivel": 200,
+                                            "empresa": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/equipamentos": {
+            "post": {
+                "tags": [
+                    "Equipamentos"
+                ],
+                "summary": "Cadastrar equipamento",
+                "description": "Registra um novo equipamento fisico e o associa a um estacionamento.",
+                "operationId": "criar_4",
+                "requestBody": {
+                    "description": "Dados do equipamento",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EquipamentoDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "nome": "Cancela Entrada Principal",
+                                        "descricao": "Cancela automatica da entrada principal",
+                                        "modelo": "Automatiza AGL-1000",
+                                        "tipoEquipamento": "ENTRADA_SAIDA",
+                                        "conexao": {
+                                            "tipoComunicacao": "ETHERNET",
+                                            "tipoProtocolo": "MQTT",
+                                            "endereco": "192.168.1.50",
+                                            "porta": 1883,
+                                            "credenciais": "user:pass",
+                                            "enderecoMac": "AA:BB:CC:DD:EE:FF"
+                                        },
+                                        "estacionamentoId": "770e8400-e29b-41d4-a716-446655440002"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados invalidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "conexao.porta",
+                                        "message": "Porta nao pode estar vazia."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Equipamento criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "990e8400-e29b-41d4-a716-446655440003",
+                                            "nome": "Cancela Entrada Principal",
+                                            "descricao": "Cancela automatica da entrada principal",
+                                            "modelo": "Automatiza AGL-1000",
+                                            "tipoEquipamento": "ENTRADA_SAIDA",
+                                            "conexaoHardware": {
+                                                "tipoComunicacao": "ETHERNET",
+                                                "tipoProtocolo": "MQTT",
+                                                "endereco": "192.168.1.50",
+                                                "porta": 1883,
+                                                "credenciais": "user:pass",
+                                                "enderecoMac": "AA:BB:CC:DD:EE:FF"
+                                            },
+                                            "estacionamento": {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002"
+                                            },
+                                            "ativo": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Estacionamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EquipamentoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Equipamento inacessivel na rede",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Nao foi possivel estabelecer conexao com o equipamento."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/empresas": {
+            "post": {
+                "tags": [
+                    "Empresas"
+                ],
+                "summary": "Criar nova empresa",
+                "description": "Cria uma nova empresa e automaticamente vincula o representante como usuário MASTER.\nCaso `empresaId` seja fornecido, a nova empresa é registrada como filial da empresa pai.\n\n**Planos disponíveis:**\n- `INICIAL`: até 50 vagas, R$500/mês\n- `MEDIO`: até 200 vagas, R$2000/mês\n- `AVANCADO`: até 500 vagas, R$4000/mês\n",
+                "operationId": "criar_5",
+                "requestBody": {
+                    "description": "Dados da empresa a ser criada",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmpresaDTO"
+                            },
+                            "examples": {
+                                "Empresa principal": {
+                                    "description": "Empresa principal",
+                                    "value": {
+                                        "representanteId": "550e8400-e29b-41d4-a716-446655440000",
+                                        "nome": "Estacionamento Central Ltda",
+                                        "endereco": {
+                                            "logradouro": "Av. Paulista, 1000",
+                                            "bairro": "Bela Vista",
+                                            "cidade": "São Paulo",
+                                            "uf": "SP",
+                                            "cep": "01310-100",
+                                            "latitude": -23.5634,
+                                            "longitude": -46.6545
+                                        },
+                                        "tipoEmpresa": "SHOPPING",
+                                        "cnpj": "12.345.678/0001-99",
+                                        "prefixo": "EST-CTR",
+                                        "plano": "MEDIO",
+                                        "empresaId": null
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Empresa criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                                            "nome": "Estacionamento Central Ltda",
+                                            "tipoEmpresa": "SHOPPING",
+                                            "representante": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                "name": "João Silva",
+                                                "cpf": "123.456.789-00",
+                                                "telefone": "(11) 99999-0000",
+                                                "email": "joao@empresa.com",
+                                                "tipoUsuario": "ADMINISTRATIVO"
+                                            },
+                                            "cnpj": "12.345.678/0001-99",
+                                            "prefixo": "EST-CTR",
+                                            "plano": "MEDIO",
+                                            "endereco": {
+                                                "id": 1,
+                                                "logradouro": "Av. Paulista, 1000",
+                                                "bairro": "Bela Vista",
+                                                "cidade": "São Paulo",
+                                                "uf": "SP",
+                                                "cep": "01310-100",
+                                                "latitude": -23.5634,
+                                                "longitude": -46.6545
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmpresaOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Representante não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "cnpj",
+                                        "message": "CNPJ não pode estar vazio."
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "CNPJ já cadastrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Empresa ja cadastrada com este CNPJ."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/empresas/{empresaId}/acessos": {
+            "get": {
+                "tags": [
+                    "Acessos"
+                ],
+                "summary": "Listar todos os acessos da empresa",
+                "description": "Retorna todos os usuários e seus respectivos níveis de acesso vinculados à empresa informada.",
+                "operationId": "listar",
+                "parameters": [
+                    {
+                        "name": "empresaId",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de acessos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": [
+                                            {
+                                                "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                                                "tipoAcesso": "MASTER",
+                                                "usuario": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                    "name": "João Silva",
+                                                    "cpf": "123.456.789-00",
+                                                    "telefone": "(11) 99999-0000",
+                                                    "email": "joao@empresa.com",
+                                                    "tipoUsuario": "ADMINISTRATIVO"
+                                                },
+                                                "empresa": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                    "nome": "Estacionamento Central Ltda",
+                                                    "tipoEmpresa": "SHOPPING",
+                                                    "cnpj": "12.345.678/0001-99",
+                                                    "prefixo": "EST-CTR",
+                                                    "plano": "MEDIO"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Acessos"
+                ],
+                "summary": "Criar acesso",
+                "description": "Concede acesso a um usuário em uma empresa com um tipo específico de permissão.",
+                "operationId": "criar_6",
+                "parameters": [
+                    {
+                        "name": "empresaId",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Dados do acesso",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AcessoDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "tipoAcesso": "GUARITA",
+                                        "usuarioId": "550e8400-e29b-41d4-a716-446655440000"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Acesso criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                                            "tipoAcesso": "GUARITA",
+                                            "usuario": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                "name": "Carlos Operador"
+                                            },
+                                            "empresa": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                "nome": "Estacionamento Central Ltda"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário ou empresa não encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Usuário já possui acesso nesta empresa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Autenticação"
+                ],
+                "summary": "Registrar novo usuário",
+                "description": "Cria uma nova conta de usuário no sistema. Não requer autenticação prévia.",
+                "operationId": "register",
+                "requestBody": {
+                    "description": "Dados do novo usuário",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UsuarioDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "name": "João Silva",
+                                        "cpf": "123.456.789-00",
+                                        "telefone": "(11) 99999-0000",
+                                        "email": "joao@empresa.com",
+                                        "senha": "minhasenha123",
+                                        "tipoUsuario": "COMUM"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                                            "name": "João Silva",
+                                            "cpf": "123.456.789-00",
+                                            "telefone": "(11) 99999-0000",
+                                            "email": "joao@empresa.com",
+                                            "tipoUsuario": "COMUM"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos ou incompletos",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "field": "cpf",
+                                        "message": "CPF não pode estar vazio."
+                                    },
+                                    {
+                                        "field": "senha",
+                                        "message": "Senha deve ter mais de 6 caracteres"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "E-mail ou CPF já cadastrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Usuario ja cadastrado com este e-mail."
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Autenticação"
+                ],
+                "summary": "Realizar login",
+                "description": "Autentica um usuário com e-mail e senha e retorna um token JWT para uso nos demais endpoints.",
+                "operationId": "login",
+                "requestBody": {
+                    "description": "Credenciais de acesso",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthDTO"
+                            },
+                            "examples": {
+                                "Exemplo": {
+                                    "description": "Exemplo",
+                                    "value": {
+                                        "email": "admin@empresa.com",
+                                        "senha": "minhasenha123"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "401": {
+                        "description": "Credenciais inválidas (e-mail ou senha incorretos)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Bad credentials"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Login realizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JWTOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyQGVtYWlsLmNvbSIsImV4cCI6MTcxMDAwMDAwMH0.abc123",
+                                            "tipoUsuario": "ADMINISTRATIVO"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Campos obrigatórios ausentes ou inválidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": [
+                                    {
+                                        "field": "email",
+                                        "message": "Email não pode estar vazio."
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/v1/vinculos/estacionamento/{estacionamentoId}": {
+            "get": {
+                "tags": [
+                    "Vinculos"
+                ],
+                "summary": "Verificar se veiculo tem vinculo com estacionamento",
+                "description": "Retorna `true` se o veiculo (identificado pela placa) possui vinculo ativo com o estacionamento informado, `false` caso contrario.",
+                "operationId": "verificaVinculo",
+                "parameters": [
+                    {
+                        "name": "estacionamentoId",
+                        "in": "path",
+                        "description": "UUID do estacionamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "770e8400-e29b-41d4-a716-446655440002"
+                    },
+                    {
+                        "name": "placa",
+                        "in": "query",
+                        "description": "Placa do veiculo",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "ABC-1234"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado da verificacao",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                },
+                                "examples": {
+                                    "Com vinculo": {
+                                        "description": "Com vinculo",
+                                        "value": true
+                                    },
+                                    "Sem vinculo": {
+                                        "description": "Sem vinculo",
+                                        "value": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Estacionamento nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/veiculos/me": {
+            "get": {
+                "tags": [
+                    "Veiculos"
+                ],
+                "summary": "Listar veiculos do usuario autenticado",
+                "description": "Retorna todos os veiculos cadastrados pelo usuario autenticado.",
+                "operationId": "listarPorUsuario_1",
+                "responses": {
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Lista de veiculos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VeiculoOutputDTO"
+                                    }
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": [
+                                            {
+                                                "id": "aa0e8400-e29b-41d4-a716-446655440004",
+                                                "placa": "ABC-1234",
+                                                "modelo": "Civic",
+                                                "cor": "Prata",
+                                                "tipoVeiculo": "CARRO",
+                                                "observacao": null
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/usuarios/my-workspaces": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Listar workspaces do usuario autenticado",
+                "description": "Retorna todos os acessos (empresas e permissoes) do usuario autenticado. Requer role ADMIN.",
+                "operationId": "obterWorkspaces",
+                "responses": {
+                    "403": {
+                        "description": "Sem permissao (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Lista de acessos do usuario",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AcessoOutputDTO"
+                                    }
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": [
+                                            {
+                                                "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                                                "tipoAcesso": "MASTER",
+                                                "usuario": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                    "name": "Joao Silva"
+                                                },
+                                                "empresa": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                    "nome": "Estacionamento Central Ltda"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/usuarios/me": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Buscar usuario autenticado",
+                "description": "Retorna os dados do usuario atualmente autenticado (extraidos do token JWT).",
+                "operationId": "obterUsuario",
+                "responses": {
+                    "401": {
+                        "description": "Nao autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Dados do usuario autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UsuarioOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                                            "name": "Joao Silva",
+                                            "cpf": "123.456.789-00",
+                                            "telefone": "(11) 99999-0000",
+                                            "email": "joao@empresa.com",
+                                            "tipoUsuario": "ADMINISTRATIVO"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/estacionamentos/privacidade/{privacidade}": {
+            "get": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Listar estacionamentos por privacidade",
+                "description": "Retorna todos os estacionamentos filtrados por tipo de privacidade (`PUBLICO` ou `PRIVADO`).",
+                "operationId": "obterPorPrivacidade",
+                "parameters": [
+                    {
+                        "name": "privacidade",
+                        "in": "path",
+                        "description": "Tipo de privacidade do estacionamento",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PUBLICO",
+                                "PRIVADO"
+                            ]
+                        },
+                        "example": "PUBLICO"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de estacionamentos filtrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Valor de privacidade inválido",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/estacionamentos/empresa/{id}": {
+            "get": {
+                "tags": [
+                    "Estacionamentos"
+                ],
+                "summary": "Listar estacionamentos por empresa",
+                "description": "Retorna todos os estacionamentos pertencentes a uma empresa. Requer role ADMIN.",
+                "operationId": "obterPorEmpresa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Empresa não encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Lista de estacionamentos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                                    }
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": [
+                                            {
+                                                "id": "770e8400-e29b-41d4-a716-446655440002",
+                                                "descricao": "Estacionamento Térreo - Ala Norte",
+                                                "privacidade": "PRIVADO",
+                                                "capacidade": 200,
+                                                "capacidadeDisponivel": 143,
+                                                "empresa": {
+                                                    "id": "550e8400-e29b-41d4-a716-446655440001"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/empresas/{empresaId}/acessos/me": {
+            "get": {
+                "tags": [
+                    "Acessos"
+                ],
+                "summary": "Buscar meu acesso na empresa",
+                "description": "Retorna o acesso do usuário autenticado na empresa especificada.",
+                "operationId": "meuAcesso",
+                "parameters": [
+                    {
+                        "name": "empresaId",
+                        "in": "path",
+                        "description": "UUID da empresa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Acesso não encontrado para este usuário/empresa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Acesso encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                },
+                                "examples": {
+                                    "Sucesso": {
+                                        "description": "Sucesso",
+                                        "value": {
+                                            "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                                            "tipoAcesso": "GUARITA",
+                                            "usuario": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                                "name": "Maria Operadora",
+                                                "cpf": "987.654.321-00",
+                                                "telefone": "(11) 88888-0000",
+                                                "email": "maria@empresa.com",
+                                                "tipoUsuario": "ADMINISTRATIVO"
+                                            },
+                                            "empresa": {
+                                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                                "nome": "Estacionamento Central Ltda"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão (requer ADMIN)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AcessoOutputDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/vinculos/{id}": {
+            "delete": {
+                "tags": [
+                    "Vinculos"
+                ],
+                "summary": "Remover vinculo",
+                "description": "Revoga a autorizacao de um veiculo em um estacionamento.",
+                "operationId": "desvincular",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "UUID do vinculo",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Vinculo removido com sucesso"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    },
+                    "404": {
+                        "description": "Vinculo nao encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseExceptionDTO"
+                                },
+                                "example": {
+                                    "message": "Vinculo nao encontrado"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "VeiculoUpdateDto": {
+                "required": [
+                    "cor",
+                    "modelo",
+                    "tipoVeiculo"
+                ],
+                "type": "object",
+                "properties": {
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "cor": {
+                        "type": "string"
+                    },
+                    "tipoVeiculo": {
+                        "type": "string",
+                        "enum": [
+                            "CARRO",
+                            "MOTO",
+                            "ONIBUS",
+                            "CAMINHAO",
+                            "TRATOR"
+                        ]
+                    }
+                }
+            },
+            "ResponseExceptionDTO": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UsuarioUpdateDto": {
+                "required": [
+                    "cpf",
+                    "email",
+                    "name",
+                    "telefone"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "cpf": {
+                        "type": "string"
+                    },
+                    "telefone": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EstacionamentoUpdateDto": {
+                "required": [
+                    "privacidade"
+                ],
+                "type": "object",
+                "properties": {
+                    "privacidade": {
+                        "type": "string",
+                        "enum": [
+                            "PRIVADO",
+                            "PUBLICO"
+                        ]
+                    }
+                }
+            },
+            "ConexaoUpdateDto": {
+                "required": [
+                    "credenciais",
+                    "endereco",
+                    "porta"
+                ],
+                "type": "object",
+                "properties": {
+                    "endereco": {
+                        "type": "string"
+                    },
+                    "porta": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "credenciais": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EquipamentoUpdateDto": {
+                "required": [
+                    "conexao",
+                    "descricao",
+                    "estacionamentoId",
+                    "modelo",
+                    "nome",
+                    "tipoEquipamento"
+                ],
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "tipoEquipamento": {
+                        "type": "string",
+                        "enum": [
+                            "ENTRADA_SAIDA",
+                            "AUTENTICADOR"
+                        ]
+                    },
+                    "estacionamentoId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "conexao": {
+                        "$ref": "#/components/schemas/ConexaoUpdateDto"
+                    }
+                }
+            },
+            "EmpresaUpdateDto": {
+                "required": [
+                    "nome",
+                    "tipoEmpresa"
+                ],
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string"
+                    },
+                    "tipoEmpresa": {
+                        "type": "string",
+                        "enum": [
+                            "UNIVERSIDADE",
+                            "COOPERATIVA",
+                            "SHOPPING",
+                            "SUPERMERCADOS",
+                            "EMPRESA_DEFAULT"
+                        ]
+                    }
+                }
+            },
+            "AcessoUpdateDto": {
+                "required": [
+                    "tipoAcesso"
+                ],
+                "type": "object",
+                "properties": {
+                    "tipoAcesso": {
+                        "type": "string",
+                        "enum": [
+                            "MASTER",
+                            "AUDITORIA",
+                            "GUARITA",
+                            "EMBARCADO"
+                        ]
+                    }
+                }
+            },
+            "VinculoDTO": {
+                "required": [
+                    "estacionamentoId",
+                    "placaVeiculo"
+                ],
+                "type": "object",
+                "properties": {
+                    "estacionamentoId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "placaVeiculo": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EmpresaOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "tipoEmpresa": {
+                        "type": "string",
+                        "enum": [
+                            "UNIVERSIDADE",
+                            "COOPERATIVA",
+                            "SHOPPING",
+                            "SUPERMERCADOS",
+                            "EMPRESA_DEFAULT"
+                        ]
+                    },
+                    "representante": {
+                        "$ref": "#/components/schemas/UsuarioOutputDTO"
+                    },
+                    "cnpj": {
+                        "type": "string"
+                    },
+                    "prefixo": {
+                        "type": "string"
+                    },
+                    "plano": {
+                        "type": "string",
+                        "enum": [
+                            "INICIAL",
+                            "MEDIO",
+                            "AVANCADO"
+                        ]
+                    },
+                    "endereco": {
+                        "$ref": "#/components/schemas/EnderecoOutputDTO"
+                    }
+                }
+            },
+            "EnderecoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "logradouro": {
+                        "type": "string"
+                    },
+                    "bairro": {
+                        "type": "string"
+                    },
+                    "cidade": {
+                        "type": "string"
+                    },
+                    "uf": {
+                        "type": "string"
+                    },
+                    "cep": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "EstacionamentoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "privacidade": {
+                        "type": "string",
+                        "enum": [
+                            "PRIVADO",
+                            "PUBLICO"
+                        ]
+                    },
+                    "capacidade": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "capacidadeDisponivel": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "empresa": {
+                        "$ref": "#/components/schemas/EmpresaOutputDTO"
+                    }
+                }
+            },
+            "UsuarioOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "cpf": {
+                        "type": "string"
+                    },
+                    "telefone": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "tipoUsuario": {
+                        "type": "string",
+                        "enum": [
+                            "COMUM",
+                            "ADMINISTRATIVO"
+                        ]
+                    }
+                }
+            },
+            "VinculoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "estacionamento": {
+                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                    }
+                }
+            },
+            "VeiculoDTO": {
+                "required": [
+                    "cor",
+                    "modelo",
+                    "placa",
+                    "tipoVeiculo"
+                ],
+                "type": "object",
+                "properties": {
+                    "placa": {
+                        "type": "string"
+                    },
+                    "cor": {
+                        "type": "string"
+                    },
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "tipoVeiculo": {
+                        "type": "string",
+                        "enum": [
+                            "CARRO",
+                            "MOTO",
+                            "ONIBUS",
+                            "CAMINHAO",
+                            "TRATOR"
+                        ]
+                    },
+                    "observacao": {
+                        "type": "string"
+                    }
+                }
+            },
+            "VeiculoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "placa": {
+                        "type": "string"
+                    },
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "cor": {
+                        "type": "string"
+                    },
+                    "tipoVeiculo": {
+                        "type": "string",
+                        "enum": [
+                            "CARRO",
+                            "MOTO",
+                            "ONIBUS",
+                            "CAMINHAO",
+                            "TRATOR"
+                        ]
+                    },
+                    "observacao": {
+                        "type": "string"
+                    },
+                    "usuario": {
+                        "$ref": "#/components/schemas/UsuarioOutputDTO"
+                    }
+                }
+            },
+            "RegistroDTO": {
+                "required": [
+                    "estacionamentoId",
+                    "placa"
+                ],
+                "type": "object",
+                "properties": {
+                    "placa": {
+                        "type": "string"
+                    },
+                    "estacionamentoId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            },
+            "RegistroOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "veiculo": {
+                        "$ref": "#/components/schemas/VeiculoOutputDTO"
+                    },
+                    "estacionamento": {
+                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                    },
+                    "tipoRegistro": {
+                        "type": "string",
+                        "enum": [
+                            "ENTRADA",
+                            "SAIDA"
+                        ]
+                    },
+                    "dataRegistro": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "EstacionamentoDTO": {
+                "required": [
+                    "capacidade",
+                    "descricao",
+                    "empresaId",
+                    "privacidade",
+                    "regraEstacionamento"
+                ],
+                "type": "object",
+                "properties": {
+                    "empresaId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "privacidade": {
+                        "type": "string",
+                        "enum": [
+                            "PRIVADO",
+                            "PUBLICO"
+                        ]
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "regraEstacionamento": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "CARRO",
+                                "MOTO",
+                                "ONIBUS",
+                                "CAMINHAO",
+                                "TRATOR"
+                            ]
+                        }
+                    },
+                    "capacidade": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "ConexaoDTO": {
+                "required": [
+                    "credenciais",
+                    "endereco",
+                    "enderecoMac",
+                    "porta",
+                    "tipoComunicacao",
+                    "tipoProtocolo"
+                ],
+                "type": "object",
+                "properties": {
+                    "tipoComunicacao": {
+                        "type": "string",
+                        "enum": [
+                            "WIFI",
+                            "ETHERNET",
+                            "SERIAL",
+                            "BLUETOOTH",
+                            "ZIGBEE",
+                            "DRY_CONTACT"
+                        ]
+                    },
+                    "tipoProtocolo": {
+                        "type": "string",
+                        "enum": [
+                            "MQTT",
+                            "HTTP",
+                            "HTTPS",
+                            "MODBUS",
+                            "RS485",
+                            "WIEGAND",
+                            "PROPRIETARIO"
+                        ]
+                    },
+                    "endereco": {
+                        "type": "string"
+                    },
+                    "porta": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "credenciais": {
+                        "type": "string"
+                    },
+                    "enderecoMac": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EquipamentoDTO": {
+                "required": [
+                    "conexao",
+                    "descricao",
+                    "estacionamentoId",
+                    "modelo",
+                    "nome",
+                    "tipoEquipamento"
+                ],
+                "type": "object",
+                "properties": {
+                    "nome": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "tipoEquipamento": {
+                        "type": "string",
+                        "enum": [
+                            "ENTRADA_SAIDA",
+                            "AUTENTICADOR"
+                        ]
+                    },
+                    "conexao": {
+                        "$ref": "#/components/schemas/ConexaoDTO"
+                    },
+                    "estacionamentoId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            },
+            "EquipamentoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "modelo": {
+                        "type": "string"
+                    },
+                    "tipoEquipamento": {
+                        "type": "string",
+                        "enum": [
+                            "ENTRADA_SAIDA",
+                            "AUTENTICADOR"
+                        ]
+                    },
+                    "conexaoHardware": {
+                        "$ref": "#/components/schemas/ConexaoDTO"
+                    },
+                    "estacionamento": {
+                        "$ref": "#/components/schemas/EstacionamentoOutputDTO"
+                    },
+                    "ativo": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "EmpresaDTO": {
+                "required": [
+                    "cnpj",
+                    "endereco",
+                    "nome",
+                    "plano",
+                    "prefixo",
+                    "representanteId",
+                    "tipoEmpresa"
+                ],
+                "type": "object",
+                "properties": {
+                    "representanteId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "endereco": {
+                        "$ref": "#/components/schemas/EnderecoDTO"
+                    },
+                    "tipoEmpresa": {
+                        "type": "string",
+                        "enum": [
+                            "UNIVERSIDADE",
+                            "COOPERATIVA",
+                            "SHOPPING",
+                            "SUPERMERCADOS",
+                            "EMPRESA_DEFAULT"
+                        ]
+                    },
+                    "cnpj": {
+                        "type": "string"
+                    },
+                    "prefixo": {
+                        "type": "string"
+                    },
+                    "plano": {
+                        "type": "string",
+                        "enum": [
+                            "INICIAL",
+                            "MEDIO",
+                            "AVANCADO"
+                        ]
+                    },
+                    "empresaId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            },
+            "EnderecoDTO": {
+                "required": [
+                    "bairro",
+                    "cep",
+                    "cidade",
+                    "latitude",
+                    "logradouro",
+                    "longitude",
+                    "uf"
+                ],
+                "type": "object",
+                "properties": {
+                    "logradouro": {
+                        "type": "string"
+                    },
+                    "bairro": {
+                        "type": "string"
+                    },
+                    "cidade": {
+                        "type": "string"
+                    },
+                    "uf": {
+                        "type": "string"
+                    },
+                    "cep": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                }
+            },
+            "AcessoDTO": {
+                "required": [
+                    "tipoAcesso",
+                    "usuarioId"
+                ],
+                "type": "object",
+                "properties": {
+                    "tipoAcesso": {
+                        "type": "string",
+                        "enum": [
+                            "MASTER",
+                            "AUDITORIA",
+                            "GUARITA",
+                            "EMBARCADO"
+                        ]
+                    },
+                    "usuarioId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            },
+            "AcessoOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "tipoAcesso": {
+                        "type": "string",
+                        "enum": [
+                            "MASTER",
+                            "AUDITORIA",
+                            "GUARITA",
+                            "EMBARCADO"
+                        ]
+                    },
+                    "usuario": {
+                        "$ref": "#/components/schemas/UsuarioOutputDTO"
+                    },
+                    "empresa": {
+                        "$ref": "#/components/schemas/EmpresaOutputDTO"
+                    }
+                }
+            },
+            "UsuarioDTO": {
+                "required": [
+                    "cpf",
+                    "email",
+                    "name",
+                    "senha",
+                    "telefone",
+                    "tipoUsuario"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "cpf": {
+                        "type": "string"
+                    },
+                    "telefone": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "senha": {
+                        "maxLength": 2147483647,
+                        "minLength": 6,
+                        "type": "string"
+                    },
+                    "tipoUsuario": {
+                        "type": "string",
+                        "enum": [
+                            "COMUM",
+                            "ADMINISTRATIVO"
+                        ]
+                    }
+                }
+            },
+            "AuthDTO": {
+                "required": [
+                    "email",
+                    "senha"
+                ],
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "senha": {
+                        "type": "string"
+                    }
+                }
+            },
+            "JWTOutputDTO": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    },
+                    "tipoUsuario": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Token JWT obtido no endpoint `/api/v1/auth/login`.",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

@@ -104,7 +104,6 @@ export default function AvaliacaoPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulação de envio
     setTimeout(() => {
       setIsSubmitting(false)
       toast({
@@ -112,7 +111,7 @@ export default function AvaliacaoPage() {
         description: "Agradecemos pelo seu feedback.",
       })
 
-      // Resetar formulário
+
       setRating(0)
       setFormData({
         nome: "",

@@ -4,32 +4,27 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ProfileMenu from "@/components/motorista/profile-menu"
 import NotificationsMenu from "@/components/motorista/notifications-menu"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
-interface HeaderProps {
-  onLogout: () => void
-}
-
-export default function Header({ onLogout }: HeaderProps) {
+export default function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         <Link href="/usuario/motorista" className="flex items-center gap-2 cursor-pointer">
-          <div className="text-2xl font-bold">
-            <span className="text-emerald-600">Estacione</span>
-            <span className="text-yellow-500">Já</span>
+          <div className="flex items-center h-12 w-36 sm:h-16 sm:w-48">
+            <img src="/logowhitetheme.svg" alt="EstacioneJá" className="h-full w-full object-contain dark:hidden" />
+            <img src="/logodarkmode.svg" alt="EstacioneJá" className="h-full w-full object-contain hidden dark:block" />
           </div>
-          <span className="text-xs text-gray-500">SUA VAGA GARANTIDA</span>
-          
         </Link>
 
         <nav className="flex items-center gap-8">
           <Link
             href="/usuario/motorista"
             className={`font-medium transition-colors ${pathname === "/usuario/motorista"
-                ? "text-emerald-600"
-                : "text-gray-700 hover:text-emerald-600"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-primary"
               }`}
           >
             Home
@@ -37,8 +32,8 @@ export default function Header({ onLogout }: HeaderProps) {
           <Link
             href="/usuario/motorista/historico"
             className={`font-medium transition-colors ${pathname === "/usuario/motorista/historico"
-                ? "text-emerald-600"
-                : "text-gray-700 hover:text-emerald-600"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-primary"
               }`}
           >
             Histórico
@@ -46,11 +41,9 @@ export default function Header({ onLogout }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-4">
-          {/* NotificationsMenu não recebe props */}
+          <ThemeToggle />
           <NotificationsMenu />
-
-          {/* ProfileMenu recebe APENAS onLogout */}
-          <ProfileMenu onLogout={onLogout} />
+          <ProfileMenu />
         </div>
       </div>
     </header>

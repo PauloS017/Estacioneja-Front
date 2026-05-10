@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Award, Shield, Users, CheckCircle, Target, TrendingUp } from "lucide-react"
+import { fundadores } from "@/constants/fundadores"
 
 export default function SobrePage() {
   return (
@@ -200,30 +201,8 @@ export default function SobrePage() {
             </div>
           </div>
 
-          {/* Lista de membros */}
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[
-              {
-                nome: "LUAN FREIRE ALVES DA SILVA",
-                cargo: "CEO & Fundador",
-                imagem: "/luan.jpg",
-              },
-              {
-                nome: "JOAO GABRIEL ODILON DA SILVA",
-                cargo: "Gerente de Designe",
-                imagem: "/joao.jpg",
-              },
-              {
-                nome: "PAULO SERGIO AMORIM DA SILVA",
-                cargo: "Gerente de Projeto",
-                imagem: "/paulo.jpg",
-              },
-              {
-                nome: "IFMS",
-                cargo: "Consultor em Desenvolvimento de Sistemas",
-                imagem: "/avatar-padrao.png",
-              },
-            ].map((membro, i) => (
+            {fundadores.map((membro, i) => (
               <div key={i} className="flex flex-col items-center text-center">
                 <div className="mb-4 rounded-full overflow-hidden w-32 h-32">
                   <Image

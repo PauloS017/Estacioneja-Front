@@ -7,7 +7,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Card, CardContent } from "@/components/ui/card"
 import { Search, Mail, HelpCircle } from "lucide-react"
 
-// Dados das perguntas frequentes
 const faqData = [
   {
     category: "Geral",
@@ -119,7 +118,6 @@ export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCategory, setExpandedCategory] = useState<string | null>("Geral")
 
-  // Filtra as perguntas com base no termo de pesquisa
   const filteredFAQ = searchTerm
     ? faqData
       .map((category) => ({

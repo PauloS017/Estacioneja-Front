@@ -1,6 +1,6 @@
 "use client";
 
-import { useMyAccessInTenant } from "@/server/features/access/use-access";
+import { useMyAccessInTenant } from "@/features/acesso";
 import { useParams } from "next/navigation";
 import {
   MapPin,
@@ -24,7 +24,7 @@ export default function TenantWorkspace() {
 
   if (tipo === "EMBARCADO") {
     return (
-      <div className="p-10 text-center text-gray-500">
+      <div className="p-10 text-center text-muted-foreground">
         Acesso embarcado não possui interface visual.
       </div>
     );
@@ -47,33 +47,28 @@ export default function TenantWorkspace() {
     );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <main className="flex-1 p-6 space-y-6">
-        {/* HEADER */}
-        <div className="bg-white rounded-2xl shadow p-5 flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl shadow-sm p-5 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">
+            <h1 className="text-xl font-bold text-foreground">
               {meuAcesso.empresa.nome}
             </h1>
-            <p className="text-gray-500 flex items-center gap-2 text-sm">
+            <p className="text-muted-foreground flex items-center gap-2 text-sm">
               {perfilIcon}
-              Perfil: <b>{tipo}</b>
+              Perfil: <b className="text-foreground">{tipo}</b>
             </p>
           </div>
         </div>
 
-        {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* TÍTULO OCUPANDO AS 3 COLUNAS → ALINHA TUDO */}
           <div className="xl:col-span-3">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-foreground">
               O que você pode fazer
             </h2>
           </div>
 
-          {/* COLUNA ESQUERDA */}
           <div className="xl:col-span-2 space-y-6">
-            {/* CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {tipo === "MASTER" && (
                 <>
@@ -102,14 +97,13 @@ export default function TenantWorkspace() {
               )}
             </div>
 
-            {/* MANUAL */}
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-blue-700" />
+            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-5">
+              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-primary">
+                <BookOpen className="w-4 h-4 text-primary" />
                 Como usar
               </h2>
 
-              <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+              <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/80">
                 <li>Selecione o estacionamento onde irá trabalhar.</li>
 
                 {tipo === "GUARITA" && (
@@ -137,14 +131,13 @@ export default function TenantWorkspace() {
             </div>
           </div>
 
-          {/* COLUNA DIREITA — MAPA */}
-          <div className="bg-white rounded-2xl shadow p-4 space-y-3 h-fit">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-600" />
+          <div className="bg-card rounded-2xl shadow-sm border border-border p-4 space-y-3 h-fit">
+            <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
               Localização
             </h2>
 
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-muted-foreground">
               {endereco.logradouro}, {endereco.cidade} / {endereco.uf}
             </p>
 
@@ -160,7 +153,7 @@ export default function TenantWorkspace() {
                 />
               </div>
             ) : (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Coordenadas não disponíveis.
               </p>
             )}
@@ -173,19 +166,19 @@ export default function TenantWorkspace() {
 
 function InfoCard({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="bg-white rounded-xl border p-4">
+    <div className="bg-card rounded-xl border border-border shadow-sm p-4 hover:border-primary/50 transition-colors">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-gray-500" />
-          <h3 className="text-sm font-semibold">{title}</h3>
+          <Info className="w-4 h-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         </div>
 
-        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+        <span className="text-[10px] bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded">
           Menu
         </span>
       </div>
 
-      <p className="text-xs text-gray-500">{desc}</p>
+      <p className="text-xs text-muted-foreground">{desc}</p>
     </div>
   );
 }

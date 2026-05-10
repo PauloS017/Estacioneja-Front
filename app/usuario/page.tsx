@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authoptions"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export default async function UsuarioGateway() {
@@ -9,7 +9,7 @@ export default async function UsuarioGateway() {
     redirect("/login")
   }
 
-  if (session.tipoUsuario === "ADMINISTRATIVO") {
+  if (session.user.tipoUsuario === "ADMINISTRATIVO") {
     redirect("/usuario/operador")
   }
 

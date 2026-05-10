@@ -5,10 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell, Menu, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
-// Lista de links que vamos manter.
+
 const navLinks = [
   { label: "Página Inicial", href: "/" },
   { label: "Sobre Nós", href: "/sobre" },
@@ -22,11 +22,11 @@ export function Navbar() {
 
  
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/Logo1.svg" alt="Logo" className="block dark:hidden h-12 w-auto" />
-          <img src="/Logo2.svg" alt="Logo" className="hidden dark:block h-12 w-auto" />
+          {/* Landing page é sempre light, logo usa sempre a versão white theme */}
+          <img src="/logowhitetheme.svg" alt="EstacioneJá" className="h-12 w-auto" />
         </Link>
 
         {/* Navegação para Desktop */}
@@ -71,10 +71,10 @@ export function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+                <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
                 <div className="flex items-center gap-2 pb-4 border-b mb-4">
-                  {/* Logo para o menu mobile - Também restaurada */}
-                  <img src="/Logo1.svg" alt="Logo" className="block dark:hidden h-10 w-auto" />
-                  <img src="/Logo2.svg" alt="Logo" className="hidden dark:block h-10 w-auto" />
+                  {/* Logo no menu mobile - sempre light pois o site é sempre claro */}
+                  <img src="/logowhitetheme.svg" alt="EstacioneJá" className="h-10 w-auto" />
                 </div>
                 <nav className="flex flex-col gap-2">
                   {navLinks.map((link) => (

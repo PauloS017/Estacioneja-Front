@@ -28,7 +28,8 @@ export async function isApiHealthy(force = false): Promise<boolean> {
 }
 
 async function probe(): Promise<boolean> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  // health.ts roda no middleware (server-side). Prefere a URL interna do container.
+  const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL
   if (!apiUrl) return false
 
   const controller = new AbortController()

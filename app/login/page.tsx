@@ -5,12 +5,9 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { BackToHome } from "@/components/ui/back-to-home"
 import { SiteFooter } from "@/components/site-footer"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { getSession, signIn } from "next-auth/react"
 
 export default function LoginPage() {
-  const router = useRouter()
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +19,8 @@ export default function LoginPage() {
     setError(null)
 
     const urlParams = new URLSearchParams(window.location.search)
-    const callbackUrl = urlParams.get("callbackUrl") || "/"
+    const rawCallback = urlParams.get("callbackUrl")
+    const callbackUrl = sanitizeCallbackUrl(rawCallback)
 
     const result = await signIn("credentials", {
       email,
@@ -37,9 +35,31 @@ export default function LoginPage() {
     }
 
     if (result?.ok) {
-      router.push(callbackUrl)
-      router.refresh() 
+      // Pull the freshly-issued session so we can route based on tipoUsuario
+      // directly — avoids bouncing through middleware with a stale router
+      // cache (the source of the spurious /nao-autorizado redirect).
+      const session = await getSession()
+      const dashboard =
+        session?.user?.tipoUsuario === "ADMINISTRATIVO"
+          ? "/usuario/operador"
+          : "/usuario/motorista"
+      const dest =
+        callbackUrl && callbackUrl !== "/" ? callbackUrl : dashboard
+
+      // Hard navigation: bypasses Next.js client router cache / prefetch
+      // results captured before the auth cookie existed, and guarantees the
+      // next middleware run sees the new JWT.
+      window.location.replace(dest)
     }
+  }
+
+  // Same-origin only. Blocks open-redirect attacks like
+  // `?callbackUrl=https://evil.com` or protocol-relative `//evil.com`.
+  function sanitizeCallbackUrl(raw: string | null): string | null {
+    if (!raw) return null
+    if (!raw.startsWith("/")) return null
+    if (raw.startsWith("//") || raw.startsWith("/\\")) return null
+    return raw
   }
 
   const inputClassName =

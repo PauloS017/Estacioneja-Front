@@ -1,7 +1,7 @@
 "use client"
 
 import { useApiQuery, useApiMutation } from "@/lib/api"
-import type { Estacionamento, EstacionamentoPayload } from "./types"
+import type { Estacionamento, EstacionamentoHeader, EstacionamentoPayload } from "./types"
 
 export const estacionamentosKeys = {
   all: ["estacionamentos"] as const,
@@ -13,10 +13,21 @@ export const estacionamentosKeys = {
 const INVALIDATE_ON_WRITE = [estacionamentosKeys.all, ["estacionamentos", "empresa"]] as const
 
 export function usePublicEstacionamentos() {
-  return useApiQuery<Estacionamento[]>({
+  const query = useApiQuery<Estacionamento[]>({
     queryKey: estacionamentosKeys.publicos,
     endpoint: "/api/v1/estacionamentos/privacidade/PUBLICO",
   })
+
+  const data: EstacionamentoHeader[] | undefined = query.data?.map((e) => ({
+    id: e.id,
+    descricao: e.descricao,
+    nomeEmpresa: e.empresa.nome,
+    endereco: e.empresa.endereco,
+    privacidade: e.privacidade,
+    regrasCapacidade: e.regrasCapacidade ?? [],
+  }))
+
+  return { ...query, data }
 }
 
 export function useEstacionamentoById(id?: string) {

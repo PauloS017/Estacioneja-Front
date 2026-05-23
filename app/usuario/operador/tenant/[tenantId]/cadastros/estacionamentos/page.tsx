@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import { Building, Plus, Settings2, Trash2, Loader2 } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Building, Plus, Settings2, Trash2, Loader2, X } from "lucide-react"
+import { useForm, useFieldArray, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
@@ -24,13 +24,32 @@ import {
   useDeleteEstacionamento,
 } from "@/features/estacionamentos"
 
+const TIPOS_VEICULO = ["CARRO", "MOTO", "ONIBUS", "CAMINHAO", "TRATOR"] as const
+
+const METODOS_ENTRADA = [
+  { value: "QR_CODE", label: "QR Code" },
+  { value: "NFC_RFID", label: "NFC / RFID" },
+  { value: "GUARITA_SIMPLES", label: "Guarita simples" },
+] as const
+
 const estSchema = z.object({
   descricao: z.string().min(3, "Obrigatório"),
   privacidade: z.enum(["PUBLICO", "PRIVADO"]),
-  capacidade: z.coerce.number().min(1, "Obrigatório"),
-  regraEstacionamento: z
-    .array(z.enum(["CARRO", "MOTO", "ONIBUS", "CAMINHAO", "TRATOR"]))
-    .min(1, "Selecione ao menos um tipo"),
+  metodoEntrada: z.enum(["QR_CODE", "NFC_RFID", "GUARITA_SIMPLES"], {
+    errorMap: () => ({ message: "Selecione um método de entrada" }),
+  }),
+  regrasCapacidade: z
+    .array(
+      z.object({
+        tipoVeiculo: z.enum(TIPOS_VEICULO),
+        capacidade: z.coerce.number().min(1, "Capacidade > 0"),
+      }),
+    )
+    .min(1, "Adicione ao menos uma regra de capacidade")
+    .refine(
+      (regras) => new Set(regras.map((r) => r.tipoVeiculo)).size === regras.length,
+      { message: "Não repita o mesmo tipo de veículo" },
+    ),
 })
 
 type EstForm = z.infer<typeof estSchema>
@@ -52,11 +71,27 @@ export default function EstacionamentosPage() {
     register,
     handleSubmit,
     reset,
+    control,
+    watch,
     formState: { errors },
   } = useForm<EstForm>({
     resolver: zodResolver(estSchema),
-    defaultValues: { privacidade: "PUBLICO", regraEstacionamento: ["CARRO"], capacidade: 50 },
+    defaultValues: {
+      privacidade: "PUBLICO",
+      metodoEntrada: "QR_CODE",
+      regrasCapacidade: [{ tipoVeiculo: "CARRO", capacidade: 50 }],
+    },
   })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "regrasCapacidade",
+  })
+
+  const regrasAtuais = watch("regrasCapacidade") ?? []
+  const tiposJaUsados = new Set(regrasAtuais.map((r) => r?.tipoVeiculo).filter(Boolean))
+  const tiposDisponiveis = TIPOS_VEICULO.filter((t) => !tiposJaUsados.has(t))
+  const podeAdicionarRegra = tiposDisponiveis.length > 0
 
   const onSubmit = async (data: EstForm) => {
     try {
@@ -106,8 +141,8 @@ export default function EstacionamentosPage() {
                 <Plus className="w-4 h-4" /> Novo Estacionamento
               </button>
             </DialogTrigger>
-            <DialogContent className="border-none shadow-2xl rounded-2xl overflow-hidden p-0 sm:max-w-md">
-              <div className="bg-emerald-600 px-6 py-4">
+            <DialogContent className="border-none shadow-2xl rounded-2xl overflow-hidden p-0 sm:max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="bg-emerald-600 px-6 py-4 sticky top-0 z-10">
                 <DialogTitle className="text-white font-bold text-lg flex items-center gap-2">
                   <Building className="w-5 h-5 text-emerald-100" />
                   {editingId ? "Editar Estacionamento" : "Registrar Estacionamento"}
@@ -127,15 +162,6 @@ export default function EstacionamentosPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase mb-1 block">Capacidade Útil</label>
-                    <input
-                      type="number"
-                      {...register("capacidade")}
-                      placeholder="Vagas"
-                      className="w-full border border-border bg-background text-foreground rounded-lg p-2.5 text-sm font-mono"
-                    />
-                  </div>
-                  <div>
                     <label className="text-xs font-semibold text-muted-foreground uppercase mb-1 block">Privacidade</label>
                     <select
                       {...register("privacidade")}
@@ -145,30 +171,107 @@ export default function EstacionamentosPage() {
                       <option value="PRIVADO">Privado</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase mb-1 block">Método de Entrada</label>
+                    <select
+                      {...register("metodoEntrada")}
+                      className="w-full border border-border bg-background text-foreground rounded-lg p-2.5 text-sm"
+                    >
+                      {METODOS_ENTRADA.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.metodoEntrada && (
+                      <p className="text-destructive text-xs mt-1">{errors.metodoEntrada.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase mb-2 block">
-                    Regras de Veículos Permitidos
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {(["CARRO", "MOTO", "ONIBUS", "CAMINHAO", "TRATOR"] as const).map((tipo) => (
-                      <label
-                        key={tipo}
-                        className="flex items-center gap-2 text-sm bg-background border border-border text-foreground rounded-lg px-3 py-2 cursor-pointer hover:bg-accent transition"
-                      >
-                        <input
-                          type="checkbox"
-                          value={tipo}
-                          {...register("regraEstacionamento")}
-                          className="text-primary rounded focus:ring-primary"
-                        />
-                        {tipo}
-                      </label>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">
+                      Regras de Capacidade
+                    </label>
+                    <button
+                      type="button"
+                      disabled={!podeAdicionarRegra}
+                      onClick={() => {
+                        if (tiposDisponiveis[0]) {
+                          append({ tipoVeiculo: tiposDisponiveis[0], capacidade: 10 })
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Adicionar regra
+                    </button>
                   </div>
-                  {errors.regraEstacionamento && (
-                    <p className="text-destructive text-xs mt-1">{errors.regraEstacionamento.message}</p>
+
+                  <div className="space-y-2">
+                    {fields.map((field, index) => {
+                      const tipoAtual = regrasAtuais[index]?.tipoVeiculo
+                      const opcoesParaEsteCampo = TIPOS_VEICULO.filter(
+                        (t) => t === tipoAtual || !tiposJaUsados.has(t),
+                      )
+
+                      return (
+                        <div
+                          key={field.id}
+                          className="flex items-start gap-2 p-2 rounded-lg border border-border bg-muted/30"
+                        >
+                          <div className="flex-1">
+                            <Controller
+                              control={control}
+                              name={`regrasCapacidade.${index}.tipoVeiculo`}
+                              render={({ field: ctrl }) => (
+                                <select
+                                  {...ctrl}
+                                  className="w-full border border-border bg-background text-foreground rounded-lg p-2 text-sm"
+                                >
+                                  {opcoesParaEsteCampo.map((tipo) => (
+                                    <option key={tipo} value={tipo}>
+                                      {tipo}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            />
+                          </div>
+                          <div className="w-28">
+                            <input
+                              type="number"
+                              min={1}
+                              {...register(`regrasCapacidade.${index}.capacidade`)}
+                              placeholder="Vagas"
+                              className="w-full border border-border bg-background text-foreground rounded-lg p-2 text-sm font-mono"
+                            />
+                            {errors.regrasCapacidade?.[index]?.capacidade && (
+                              <p className="text-destructive text-[10px] mt-1">
+                                {errors.regrasCapacidade[index]?.capacidade?.message as string}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            disabled={fields.length <= 1}
+                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Remover regra"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {errors.regrasCapacidade && typeof errors.regrasCapacidade.message === "string" && (
+                    <p className="text-destructive text-xs mt-1">{errors.regrasCapacidade.message}</p>
+                  )}
+                  {errors.regrasCapacidade?.root?.message && (
+                    <p className="text-destructive text-xs mt-1">{errors.regrasCapacidade.root.message}</p>
                   )}
                 </div>
 
@@ -210,7 +313,7 @@ export default function EstacionamentosPage() {
               <tr className="bg-muted/20 border-b border-border text-xs uppercase text-muted-foreground font-semibold tracking-wider">
                 <th className="px-6 py-4">Nome / Descrição</th>
                 <th className="px-6 py-4">Privacidade</th>
-                <th className="px-6 py-4">Capacidade</th>
+                <th className="px-6 py-4">Capacidade por tipo</th>
                 <th className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
@@ -231,7 +334,20 @@ export default function EstacionamentosPage() {
                       {est.privacidade?.toUpperCase() || "PÚBLICO"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-foreground">{est.capacidade} Vagas</td>
+                  <td className="px-6 py-4 text-sm text-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      {est.regrasCapacidade?.length ? (
+                        est.regrasCapacidade.map((r) => (
+                          <span key={r.tipoVeiculo} className="text-xs">
+                            <span className="font-semibold">{r.tipoVeiculo}:</span>{" "}
+                            {r.capacidadeDisponivel}/{r.capacidade} vagas
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <Can I="manage" a="Estacionamento">
                       <button
@@ -240,8 +356,13 @@ export default function EstacionamentosPage() {
                           reset({
                             descricao: est.descricao,
                             privacidade: est.privacidade,
-                            capacidade: est.capacidade,
-                            regraEstacionamento: ["CARRO"],
+                            metodoEntrada: est.metodoEntrada ?? "QR_CODE",
+                            regrasCapacidade: est.regrasCapacidade?.length
+                              ? est.regrasCapacidade.map((r) => ({
+                                  tipoVeiculo: r.tipoVeiculo,
+                                  capacidade: r.capacidade,
+                                }))
+                              : [{ tipoVeiculo: "CARRO", capacidade: 10 }],
                           })
                           setOpen(true)
                         }}

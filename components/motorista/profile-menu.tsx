@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { LogOut, User } from "lucide-react"
+import { Car, LogOut, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
 
@@ -28,7 +28,11 @@ export default function ProfileMenu() {
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition">
+        <button
+          type="button"
+          aria-label="Menu do usuário"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition cursor-pointer"
+        >
           <UserAvatar
             userId={user.id}
             temFotoPerfil={user.temFotoPerfil}
@@ -56,6 +60,16 @@ export default function ProfileMenu() {
         >
           <User className="w-4 h-4" />
           <span>Meu perfil</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push("/usuario/motorista/veiculos")
+            setIsOpen(false)
+          }}
+          className="gap-2 cursor-pointer"
+        >
+          <Car className="w-4 h-4" />
+          <span>Meus veículos</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

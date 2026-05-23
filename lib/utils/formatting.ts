@@ -49,3 +49,18 @@ export function isValidPhone(value: string): boolean {
   if (digits.length === 11 && digits[2] === "9") return true
   return false
 }
+export function formatLicensePlate(value: string): string {
+  // Normalize and limit to 7 characters
+  const cleaned = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7)
+  
+  if (cleaned.length <= 3) return cleaned
+  
+  // Rule for old format: AAA-1234 (3 letters + 4 numbers)
+  const isOldPlate = cleaned.length >= 4 && /^[A-Z]{3}[0-9]/.test(cleaned)
+  
+  if (isOldPlate) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`
+  }
+  
+  return cleaned
+}

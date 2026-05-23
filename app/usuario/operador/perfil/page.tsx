@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { ArrowLeft, Check, Shield } from "lucide-react"
 
-import { formatCPF, formatPhone } from "@/lib/utils"
+import { formatCPF, formatPhone, onlyDigits } from "@/lib/utils"
 import { useUser, useUpdateUser, type Usuario } from "@/features/usuarios"
 import { ProfilePhotoEditor } from "@/components/profile-photo-editor"
 
@@ -118,7 +118,7 @@ export default function AdminProfilePage() {
                 <label className="block text-sm font-semibold text-foreground mb-2">CPF</label>
                 <input
                   value={formatCPF(formData.cpf) ?? ""}
-                  onChange={(e) => handleInputChange("cpf", e.target.value)}
+                  onChange={(e) => handleInputChange("cpf", onlyDigits(e.target.value))}
                   className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition shadow-sm"
                 />
               </div>
@@ -137,7 +137,7 @@ export default function AdminProfilePage() {
                   <label className="block text-sm font-semibold text-foreground mb-2">Telefone</label>
                   <input
                     value={formatPhone(formData.telefone)}
-                    onChange={(e) => handleInputChange("telefone", e.target.value)}
+                    onChange={(e) => handleInputChange("telefone", onlyDigits(e.target.value))}
                     placeholder="(##) #####-####"
                     className="w-full px-4 py-3 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition shadow-sm"
                   />

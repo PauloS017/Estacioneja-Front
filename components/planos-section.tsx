@@ -23,7 +23,6 @@ export function PlanosSection() {
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {isLoading ? (
-            // Skeletons
             <>
               {[1, 2, 3].map((i) => (
                 <div
@@ -51,7 +50,7 @@ export function PlanosSection() {
             </div>
           ) : (
             planos.map((plano: Plano, index: number) => (
-              <PricingCard key={index} {...plano} isPopular={index === 1} />
+              plano.exibirPagina ? <PricingCard key={index} {...plano} isPopular={index === 1} /> : null
             ))
           )}
         </div>

@@ -5,4 +5,5 @@ export interface Plano {
     beneficios: string[]
     custoPorMes: number
     estoqueAtivo: boolean
+    exibirPagina: boolean
 }

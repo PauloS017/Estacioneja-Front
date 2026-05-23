@@ -27,7 +27,11 @@ export default function NotificationsMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="relative p-2 hover:bg-accent rounded-lg transition">
+        <button
+          type="button"
+          aria-label="Notificações"
+          className="relative p-2 hover:bg-accent rounded-lg transition cursor-pointer"
+        >
           <Bell className="w-6 h-6 text-muted-foreground hover:text-primary" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
@@ -62,11 +66,13 @@ export default function NotificationsMenu() {
                     <p className="text-xs text-muted-foreground mt-1">{notification.timestamp}</p>
                   </div>
                   <button
+                    type="button"
+                    aria-label="Dispensar notificação"
                     onClick={(e) => {
                       e.stopPropagation()
                       dismissNotification(notification.id)
                     }}
-                    className="opacity-0 group-hover:opacity-100 transition"
+                    className="opacity-0 group-hover:opacity-100 transition cursor-pointer"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                   </button>

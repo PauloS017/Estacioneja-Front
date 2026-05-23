@@ -1,86 +1,119 @@
 "use client"
 
-import { useEffect } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Calendar, LogOut, LogIn, ArrowLeft } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, LogIn, LogOut } from "lucide-react"
 
-import { defaultAlert } from "@/lib/utils"
 import { useHistoricoEstacionamento } from "@/features/registros"
 
 export default function ParkingHistoryPage() {
   const params = useParams()
-  const parkingId = typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : ""
+  const parkingId =
+    typeof params.id === "string"
+      ? params.id
+      : Array.isArray(params.id)
+        ? params.id[0]
+        : ""
 
-  const { data: historico } = useHistoricoEstacionamento(parkingId)
+  const { data: historico, isLoading } = useHistoricoEstacionamento(parkingId)
 
-  useEffect(() => {
-    if (historico && historico.length === 0) {
-      defaultAlert.info({ title: "Sem Histórico Encontrado" })
-    }
-  }, [historico])
+  if (!parkingId) return null
 
-  if (!parkingId) {
-    return null
-  }
-
-  if (!historico) {
-    return <p>Carregando...</p>
-  }
+  const descricao = historico?.[0]?.estacionamento.descricao
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-8">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <Link
         href={`/usuario/motorista/estacionamento/${parkingId}`}
-        className="flex items-center gap-2 text-primary hover:text-primary/80 mb-8 font-semibold"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary mb-6 transition-colors"
       >
-        <ArrowLeft className="w-5 h-5" />
+        <ArrowLeft className="w-4 h-4" />
         Voltar
       </Link>
 
-      <h1 className="text-3xl font-bold text-foreground mb-8">
-        Histórico de: {historico[0]?.estacionamento.descricao}
-      </h1>
+      <header className="mb-6 sm:mb-8">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">
+          Atividade
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+          {descricao ? `Histórico · ${descricao}` : "Histórico do estacionamento"}
+        </h1>
+      </header>
 
-      <div className="space-y-4">
-        {historico.map((entry) => {
-          const isEntrada = entry.tipoRegistro === "ENTRADA"
-          return (
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
             <div
-              key={entry.id}
-              className="bg-card text-card-foreground rounded-lg p-6 border border-border hover:shadow-lg transition"
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg ${isEntrada ? "bg-primary/10" : "bg-destructive/10"}`}>
-                  {isEntrada ? (
-                    <LogIn className="w-6 h-6 text-primary" />
-                  ) : (
-                    <LogOut className="w-6 h-6 text-destructive" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-foreground">{entry.estacionamento.descricao}</h3>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isEntrada ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
-                      {isEntrada ? "Entrada" : "Saída"}
-                    </span>
+              key={i}
+              className="h-20 rounded-lg border border-border bg-card animate-pulse"
+            />
+          ))}
+        </div>
+      ) : !historico || historico.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border px-6 py-14 text-center">
+          <span className="mx-auto mb-3 inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted text-muted-foreground">
+            <Clock className="w-5 h-5" />
+          </span>
+          <p className="text-sm font-semibold text-foreground">
+            Nenhum registro ainda
+          </p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+            Os registros deste estacionamento aparecerão aqui após sua primeira
+            entrada.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {historico.map((entry) => {
+            const isEntrada = entry.tipoRegistro === "ENTRADA"
+            return (
+              <div
+                key={entry.id}
+                className="bg-card text-card-foreground rounded-lg p-4 sm:p-5 border border-border hover:border-foreground/20 transition-colors"
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg flex-shrink-0 ${
+                      isEntrada
+                        ? "bg-primary/10 text-primary"
+                        : "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                    }`}
+                  >
+                    {isEntrada ? (
+                      <LogIn className="w-5 h-5" />
+                    ) : (
+                      <LogOut className="w-5 h-5" />
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(entry.dataRegistro).toLocaleString("pt-BR")}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {entry.estacionamento.descricao}
+                      </h3>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex-shrink-0 ${
+                          isEntrada
+                            ? "bg-primary/10 text-primary"
+                            : "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                        }`}
+                      >
+                        {isEntrada ? "Entrada" : "Saída"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>
+                        {new Date(entry.dataRegistro).toLocaleString("pt-BR")}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </main>
   )
 }

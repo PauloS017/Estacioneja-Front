@@ -1,158 +1,32 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
-import { useParams } from "next/navigation"
-import { Search, User, Cctv, Video, Maximize2, RefreshCw } from "lucide-react"
-import Swal from "sweetalert2"
-
-import Hls from "hls.js"
+import { Search, User, RefreshCw } from "lucide-react"
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { getGravatarUrl } from "@/lib/utils"
-import { useCheckVinculo } from "@/features/vinculos"
-import { useEstacionamentoById } from "@/features/estacionamentos"
-import { useFotoPerfilUrl } from "@/features/usuarios"
-
-function CctvPlayer({ url }: { url: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    if (Hls.isSupported()) {
-      const hls = new Hls()
-      hls.loadSource(url)
-      hls.attachMedia(video)
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => { })
-      })
-      return () => hls.destroy()
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url
-      video.addEventListener("loadedmetadata", () => {
-        video.play().catch(() => { })
-      })
-    }
-  }, [url])
-
-  return (
-    <video
-      ref={videoRef}
-      className="w-full h-full object-cover opacity-90 brightness-90 transition-transform duration-700"
-      muted
-      playsInline
-      autoPlay
-    />
-  )
-}
+import { getGravatarUrl, formatLicensePlate } from "@/lib/utils"
+import { useValidationPage } from "@/features/vinculos"
+import { CctvPlayer } from "@/components/operador/cctv-player"
 
 export default function ValidationPage() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const { estacionamentoId } = useParams<{ estacionamentoId: string }>()
-
-  const { data: estacionamentoSelecionado } = useEstacionamentoById(estacionamentoId)
-
-  const [placa, setPlaca] = useState("")
-  const [searchPlaca, setSearchPlaca] = useState<string | null>(null)
-
-  const placaNormalizada = useMemo(() => placa.replace(/\s+/g, "").toUpperCase(), [placa])
-
   const {
-    data: vinculo,
-    isFetching,
-    isFetched,
-  } = useCheckVinculo(searchPlaca ?? undefined, estacionamentoId)
-
-  const temFotoPerfil = vinculo?.veiculo?.usuario?.temFotoPerfil ?? false;
-
-  const fotoPerfil = useFotoPerfilUrl(vinculo?.veiculo?.usuario?.id, temFotoPerfil);
-
-
-  const [mounted, setMounted] = useState(false)
-  const [time, setTime] = useState("")
-
-  useEffect(() => {
-    setMounted(true)
-    setTime(new Date().toLocaleTimeString('pt-BR'))
-
-    const timer = setInterval(() => {
-      setTime(new Date().toLocaleTimeString('pt-BR'))
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
-  const status = useMemo(() => {
-    if (!searchPlaca) return "idle"
-    if (isFetching) return "loading"
-    if (isFetched && vinculo?.id !== null && vinculo?.id !== undefined) return "success"
-    if (isFetched && vinculo?.id === null) return "error"
-    return "idle"
-  }, [searchPlaca, isFetching, isFetched, vinculo])
-
-  const handleSearch = () => {
-    if (!placaNormalizada) {
-      Swal.fire({ icon: "warning", title: "Informe a placa" })
-      return
-    }
-    if (!estacionamentoId) {
-      Swal.fire({ icon: "error", title: "Nenhum estacionamento selecionado" })
-      return
-    }
-    setSearchPlaca(placaNormalizada)
-  }
-
-  useEffect(() => {
-    if (!searchPlaca || !isFetched) return
-
-    if (vinculo) {
-      Swal.fire({
-        icon: "success",
-        title: "Vínculo encontrado",
-        text: "Veículo autorizado para este estacionamento",
-      })
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Sem vínculo",
-        text: "Veículo não vinculado a este estacionamento",
-      })
-    }
-  }, [vinculo, isFetched, searchPlaca])
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSearch()
-  }
-
-  const reset = () => {
-    setPlaca("")
-    setSearchPlaca(null)
-    inputRef.current?.focus()
-  }
-
-  const handleAbrirFechar = () => {
-    Swal.fire({ icon: "success", title: "Acesso liberado", text: `Placa ${searchPlaca}` })
-    reset()
-  }
-
-  const handleLiberarVisitante = () => {
-    Swal.fire({
-      icon: "info",
-      title: "Liberar visitante",
-      text: `Cadastrar visitante para placa ${searchPlaca}`,
-    })
-  }
+    inputRef,
+    placa,
+    setPlaca,
+    searchPlaca,
+    estacionamentoSelecionado,
+    vinculo,
+    fotoPerfil,
+    temFotoPerfil,
+    status,
+    handleSearch,
+    handleKeyPress,
+    handleAbrirFechar,
+    handleLiberarVisitante,
+  } = useValidationPage()
 
   return (
     <div className="flex-1 flex flex-col p-8 bg-background overflow-y-auto">
       <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-        {/* Painel de Controle */}
         <div className="lg:col-span-5 bg-card border border-border rounded-2xl shadow-xl p-8 md:p-12 order-2 lg:order-1">
           <div className="flex justify-center mb-8">
             {status === "success" ? (
@@ -210,8 +84,8 @@ export default function ValidationPage() {
                 ref={inputRef}
                 type="text"
                 placeholder="ABC1D23"
-                value={placa}
-                onChange={(e) => setPlaca(e.target.value.toUpperCase())}
+                value={formatLicensePlate(placa)}
+                onChange={(e) => setPlaca(e.target.value)}
                 onKeyDown={handleKeyPress}
                 className="w-full pl-12 pr-4 py-4 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-xl font-mono tracking-widest text-foreground placeholder-muted-foreground uppercase transition-all"
               />
@@ -253,65 +127,11 @@ export default function ValidationPage() {
           </div>
         </div>
 
+        {/* Câmera de Segurança */}
         <div className="lg:col-span-7 space-y-6 order-1 lg:order-2">
-          <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden group">
-            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
-              <div className="flex items-center gap-3">
-
-                <div>
-                  <h3 className="font-bold text-foreground leading-none text-sm">Câmera Principal - Entrada</h3>
-                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">{estacionamentoSelecionado?.empresa.nome}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative aspect-video bg-black overflow-hidden">
-              <CctvPlayer url="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" />
-
-              <div className="absolute inset-0 pointer-events-none border-[20px] border-transparent group-hover:border-white/5 transition-all" />
-
-              <div className="absolute top-4 left-4 flex flex-col gap-1">
-                <div className="text-[10px] font-mono text-white bg-black/60 px-2 py-0.5 rounded-sm">
-                  CAM_ENTRY_01
-                </div>
-                <div className="text-[8px] font-mono text-white/70 bg-black/40 px-2 py-0.5 rounded-sm">
-                  ISO 400 • 30FPS
-                </div>
-              </div>
-
-              <div className="absolute bottom-4 right-4 text-right">
-                <div className="text-[10px] font-mono text-white bg-black/60 px-2 py-0.5 rounded-sm inline-block">
-                  {mounted ? new Date().toLocaleDateString('pt-BR') : '--/--/----'}
-                </div>
-                <div className="block mt-1">
-                  <div className="text-[10px] font-mono text-white bg-black/60 px-2 py-0.5 rounded-sm inline-block">
-                    {mounted ? time : '--:--:--'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
-            </div>
-
-            <div className="p-4 bg-muted/20 flex items-center justify-between">
-              <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <span className="text-[8px] uppercase text-muted-foreground font-bold tracking-widest">Sinal</span>
-                  <span className="text-[10px] font-mono text-emerald-500 font-bold">EXCELENTE</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[8px] uppercase text-muted-foreground font-bold tracking-widest">IP</span>
-                  <span className="text-[10px] font-mono text-foreground/70">192.168.1.144</span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 bg-muted hover:bg-border text-foreground text-[10px] font-bold rounded transition-colors flex items-center gap-1.5 border border-border">
-                  <Video className="w-3 h-3" /> ALTERAR FONTE
-                </button>
-              </div>
-            </div>
-          </div>
-
+          <CctvPlayer
+            estacionamentoDescricao={estacionamentoSelecionado?.descricao}
+          />
         </div>
 
       </div>

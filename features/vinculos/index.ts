@@ -1,4 +1,14 @@
-export type { Vinculo, CriarVinculoPayload } from "./types"
+export type {
+  Vinculo,
+  CriarVinculoPayload,
+  VeiculoResumo,
+  EstacionamentoCardUsuario,
+  VinculoCardUsuario,
+  ProprietarioResumo,
+  EstacionamentoRotulo,
+  VinculoLinhaAdmin,
+  VinculoConsultaGuarita,
+} from "./types"
 export {
   vinculosKeys,
   useMeusEstacionamentosVinculados,
@@ -7,3 +17,4 @@ export {
   useVinculosDaEmpresa,
   useDeleteVinculo,
 } from "./use-vinculos"
+export { useValidationPage } from "./use-validation-page"

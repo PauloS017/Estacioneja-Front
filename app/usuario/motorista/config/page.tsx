@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
-import { ArrowLeft, Plus, Check } from "lucide-react"
+import { ArrowLeft, Check, Loader2, UserCircle2 } from "lucide-react"
 
-import { formatCPF, formatPhone, defaultAlert } from "@/lib/utils"
+import { formatCPF, formatPhone, defaultAlert, onlyDigits } from "@/lib/utils"
 import { useUser, useUpdateUser, type Usuario } from "@/features/usuarios"
-import { useMeusVeiculos } from "@/features/veiculos"
 import { ProfilePhotoEditor } from "@/components/profile-photo-editor"
 
 type FormState = {
@@ -19,10 +18,9 @@ type FormState = {
 export default function ConfigPage() {
   const { data: user } = useUser()
   const { mutateAsync: updateUser, isPending: isSaving } = useUpdateUser()
-  const { data: veiculos } = useMeusVeiculos()
 
   const [formData, setFormData] = useState<FormState | null>(null)
-  const [showSaveMessage, setShowSaveMessage] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
 
   useEffect(() => {
     if (user && !formData) {
@@ -49,7 +47,7 @@ export default function ConfigPage() {
     )
   }, [user, formData])
 
-  async function handleSaveProfileClick() {
+  async function handleSave() {
     if (!user || !formData || !hasChanges || isSaving) return
 
     const payload: Partial<Usuario> = {
@@ -61,32 +59,51 @@ export default function ConfigPage() {
 
     try {
       await updateUser({ id: user.id, data: payload })
-      defaultAlert.success({ title: "Usuário atualizado com sucesso" })
-      setTimeout(() => setShowSaveMessage(false), 3000)
-    } catch (error) {
-      console.error("Erro ao atualizar perfil", error)
+      defaultAlert.success({ title: "Perfil atualizado com sucesso" })
+      setJustSaved(true)
+      setTimeout(() => setJustSaved(false), 2500)
+    } catch {
+      defaultAlert.error({
+        title: "Não foi possível atualizar",
+        text: "Verifique os dados e tente novamente.",
+      })
     }
   }
+
   return (
-    <main className="max-w-2xl mx-auto px-6 py-8">
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <Link
         href="/usuario/motorista"
-        className="flex items-center gap-2 text-primary hover:text-primary/80 mb-8 font-semibold"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary mb-6 transition-colors"
       >
-        <ArrowLeft className="w-5 h-5" />
+        <ArrowLeft className="w-4 h-4" />
         Voltar
       </Link>
 
-      <h1 className="text-3xl font-bold text-center text-foreground mb-8">Configurações do Perfil</h1>
+      <header className="mb-6 sm:mb-8">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary">
+            <UserCircle2 className="w-5 h-5" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+              Configurações do perfil
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Atualize seus dados pessoais e foto
+            </p>
+          </div>
+        </div>
+      </header>
 
-      <div className="bg-card border border-border rounded-lg p-8 mb-8">
-        <h2 className="text-xl font-bold text-orange-500 mb-6">Informações Pessoais</h2>
-
+      <section className="bg-card border border-border rounded-xl overflow-hidden">
         {!formData ? (
-          <SkeletonProfile />
+          <div className="p-6 sm:p-8">
+            <SkeletonProfile />
+          </div>
         ) : (
           <>
-            <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-border">
+            <div className="flex flex-col items-center gap-3 px-6 sm:px-8 py-6 sm:py-8 bg-muted/30 border-b border-border">
               {user && (
                 <ProfilePhotoEditor
                   userId={user.id}
@@ -94,17 +111,24 @@ export default function ConfigPage() {
                   name={user.name}
                 />
               )}
+              <p className="text-xs text-muted-foreground">
+                Clique na foto para atualizar
+              </p>
             </div>
 
-            <div className="space-y-4">
-              <Input label="Nome Completo" value={formData.name} onChange={(v) => handleInputChange("name", v)} />
+            <div className="p-6 sm:p-8 space-y-4">
+              <Input
+                label="Nome completo"
+                value={formData.name}
+                onChange={(v) => handleInputChange("name", v)}
+              />
               <Input
                 label="CPF"
                 value={formatCPF(formData.cpf) ?? ""}
-                onChange={(v) => handleInputChange("cpf", v)}
+                onChange={(v) => handleInputChange("cpf", onlyDigits(v))}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Email"
                   type="email"
@@ -114,75 +138,55 @@ export default function ConfigPage() {
                 <Input
                   label="Telefone"
                   value={formatPhone(formData.telefone)}
-                  onChange={(v) => handleInputChange("telefone", v)}
+                  onChange={(v) => handleInputChange("telefone", onlyDigits(v))}
                   placeholder="(##) #####-####"
                 />
               </div>
 
-              <div className="relative">
+              <div className="pt-2">
                 <button
-                  onClick={handleSaveProfileClick}
+                  type="button"
+                  onClick={handleSave}
                   disabled={!hasChanges || isSaving}
-                  className="w-full mt-6 bg-primary text-primary-foreground font-bold py-3 rounded-lg hover:bg-primary/90 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="
+                    w-full inline-flex items-center justify-center gap-2
+                    px-4 py-2.5 rounded-md text-sm font-semibold
+                    bg-primary text-primary-foreground
+                    hover:bg-primary/90
+                    enabled:cursor-pointer
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition
+                  "
                 >
-                  {isSaving ? "Salvando..." : "Salvar Alterações"}
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : justSaved ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Salvo
+                    </>
+                  ) : hasChanges ? (
+                    "Salvar alterações"
+                  ) : (
+                    "Nenhuma alteração pendente"
+                  )}
                 </button>
-
-                {showSaveMessage && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-card/80 rounded-lg animate-pulse">
-                    <div className="flex items-center gap-2 text-primary font-bold">
-                      <Check className="w-6 h-6" />
-                      Perfil Atualizado
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </>
         )}
-      </div>
-
-      <div className="bg-card border border-border rounded-lg p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-orange-500">Meus Veículos</h2>
-
-          <Link
-            href="/usuario/motorista/veiculo-novo"
-            className="flex items-center gap-2 px-4 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary/10 transition"
-          >
-            <Plus className="w-5 h-5" />
-            Novo Veículo
-          </Link>
-        </div>
-
-        <div className="space-y-4">
-          {veiculos?.map((vehicle) => (
-            <div
-              key={vehicle.id}
-              className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition"
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{vehicle.tipoVeiculo === "CARRO" ? "🚗" : "🏉️"}</span>
-                <div>
-                  <p className="font-bold text-foreground">{vehicle.placa}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {vehicle.modelo} - {vehicle.cor}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      </section>
     </main>
   )
 }
 
-
 function SkeletonProfile() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="h-32 w-32 bg-muted rounded-full mx-auto" />
+      <div className="h-24 w-24 bg-muted rounded-full mx-auto" />
       <div className="h-10 bg-muted rounded" />
       <div className="h-10 bg-muted rounded" />
       <div className="grid grid-cols-2 gap-4">
@@ -205,14 +209,25 @@ type InputProps = {
 function Input({ label, value, onChange, type = "text", placeholder, disabled }: InputProps) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-foreground mb-2">{label}</label>
+      <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+        {label}
+      </label>
       <input
         type={type}
         value={value ?? ""}
         placeholder={placeholder}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.value)}
-        className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-muted disabled:opacity-70 disabled:cursor-not-allowed"
+        className="
+          w-full px-3 py-2
+          bg-background text-foreground
+          border border-border rounded-md
+          text-sm
+          focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
+          placeholder:text-muted-foreground
+          disabled:bg-muted disabled:opacity-70 disabled:cursor-not-allowed
+          transition
+        "
       />
     </div>
   )

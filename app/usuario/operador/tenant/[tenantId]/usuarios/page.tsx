@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { Plus, Trash2, Shield, Car, Loader2 } from "lucide-react"
 import { Can } from "@/lib/casl/context"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
@@ -20,7 +20,7 @@ import {
   DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog"
-import { Toast, confirmDialog } from "@/lib/utils/sweetalert"
+import { Toast, confirmDialog, formatLicensePlate } from "@/lib/utils"
 
 const acessoSchema = z.object({
   email: z.string().email("E-mail inválido para busca"),
@@ -261,7 +261,19 @@ export default function UsuariosPage() {
                       </div>
                       <div>
                         <label className="text-xs font-semibold text-muted-foreground uppercase mb-1 block">Placa do Veículo Emitido</label>
-                        <input {...formVinculo.register("placaVeiculo")} placeholder="ABC1234" className="w-full border border-border bg-background text-foreground rounded-md p-2 text-sm font-mono uppercase" />
+                        <Controller
+                          control={formVinculo.control}
+                          name="placaVeiculo"
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              placeholder="ABC1234"
+                              value={formatLicensePlate(field.value ?? "")}
+                              onChange={(e) => field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7))}
+                              className="w-full border border-border bg-background text-foreground rounded-md p-2 text-sm font-mono uppercase"
+                            />
+                          )}
+                        />
                         {formVinculo.formState.errors.placaVeiculo && <p className="text-destructive text-xs mt-1">{formVinculo.formState.errors.placaVeiculo.message}</p>}
                       </div>
                       <div className="flex justify-end gap-3 pt-4 border-t border-border">

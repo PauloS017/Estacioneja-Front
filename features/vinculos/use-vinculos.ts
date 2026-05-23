@@ -1,7 +1,6 @@
 "use client"
 
 import { useApiQuery, useApiMutation } from "@/lib/api"
-import type { Estacionamento } from "@/features/estacionamentos/types"
 import type { CriarVinculoPayload, Vinculo } from "./types"
 
 export const vinculosKeys = {
@@ -13,10 +12,9 @@ export const vinculosKeys = {
 }
 
 export function useMeusEstacionamentosVinculados() {
-  return useApiQuery<Vinculo[], Estacionamento[]>({
+  return useApiQuery<Vinculo[]>({
     queryKey: vinculosKeys.meusEstacionamentos,
     endpoint: "/api/v1/vinculos",
-    select: (vinculos) => vinculos.map((v) => v.estacionamento),
   })
 }
 

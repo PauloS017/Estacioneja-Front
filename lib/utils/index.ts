@@ -3,6 +3,7 @@ export {
   formatCPF,
   formatPhone,
   onlyDigits,
+  formatLicensePlate,
   isValidCPF,
   isValidEmail,
   isValidPhone,

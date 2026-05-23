@@ -24,17 +24,10 @@ import { EstacionamentoHeader } from "@/features/estacionamentos/types"
 
 interface Props extends EstacionamentoHeader {
   veiculos?: VeiculoVinculo[]
-  /**
-   * "connected": cartão de estacionamento vinculado — mostra ações
-   * (ver veículos + método de entrada).
-   * "public": cartão na vitrine de descoberta — exibe apenas info,
-   * sem ações que pressupõem vínculo.
-   */
   variant?: "connected" | "public"
 }
 
-export default function ParkingCard({
-  descricao,
+export default function PublicParking({
   nomeEmpresa,
   endereco,
   privacidade,
@@ -81,7 +74,7 @@ export default function ParkingCard({
           <header className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-foreground text-[15px] leading-snug line-clamp-2">
-                {descricao}
+                {nomeEmpresa}
               </h3>
               <div className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
                 <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />

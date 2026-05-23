@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, ChevronRight, Car, Bike, Clock, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useEstacionamentoById } from "@/features/estacionamentos"
@@ -58,7 +58,12 @@ export default function ParkingDetailPage() {
 
   const endereco = parking.empresa.endereco
   const enderecoFormatado = `${endereco?.logradouro} - ${endereco?.bairro}, ${endereco?.cidade}-${endereco?.uf}`
-  const ocupacao = Math.round(((parking.capacidade - parking.capacidadeDisponivel) / parking.capacidade) * 100)
+  const regras = parking.regrasCapacidade ?? []
+  const totalCapacidade = regras.reduce((acc, r) => acc + r.capacidade, 0)
+  const totalDisponivel = regras.reduce((acc, r) => acc + r.capacidadeDisponivel, 0)
+  const totalEmUso = totalCapacidade - totalDisponivel
+  const ocupacao =
+    totalCapacidade > 0 ? Math.round((totalEmUso / totalCapacidade) * 100) : 0
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-8">
@@ -83,13 +88,13 @@ export default function ParkingDetailPage() {
               onClick={() =>
                 setCurrentImageIndex((prev) => (prev - 1 + CAROUSEL_IMAGES.length) % CAROUSEL_IMAGES.length)
               }
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={() => setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition opacity-0 group-hover:opacity-100 cursor-pointer"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -122,40 +127,71 @@ export default function ParkingDetailPage() {
 
         <div className="bg-primary/5 p-6 rounded-lg border border-primary/20">
           <p className="text-sm font-medium text-primary mb-4">Vagas Disponíveis Agora</p>
-          <p className="text-4xl font-bold text-primary mb-1">{parking.capacidadeDisponivel}</p>
-          <p className="text-xs text-primary/80">de {parking.capacidade} vagas totais</p>
+          <p className="text-4xl font-bold text-primary mb-1">{totalDisponivel}</p>
+          <p className="text-xs text-primary/80">de {totalCapacidade} vagas totais</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-card p-4 rounded-lg border border-border">
-          <p className="text-muted-foreground text-sm font-medium mb-1">Capacidade</p>
-          <p className="text-2xl font-bold text-foreground">{parking.capacidade}</p>
+          <p className="text-muted-foreground text-sm font-medium mb-1">Capacidade total</p>
+          <p className="text-2xl font-bold text-foreground">{totalCapacidade}</p>
         </div>
         <div className="bg-card p-4 rounded-lg border border-border">
           <p className="text-muted-foreground text-sm font-medium mb-1">Em uso</p>
-          <p className="text-2xl font-bold text-foreground">{parking.capacidade - parking.capacidadeDisponivel}</p>
+          <p className="text-2xl font-bold text-foreground">{totalEmUso}</p>
         </div>
-        <div className="bg-card p-4 rounded-lg border border-border flex items-center gap-3">
-          <Car className="w-8 h-8 text-sky-500" />
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">Carros</p>
-            <p className="text-xl font-bold text-foreground">{parking.capacidadeDisponivel}</p>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-sm font-semibold text-foreground mb-3">
+          Vagas por tipo de veículo
+        </h2>
+        {regras.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Sem regras de capacidade cadastradas.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {regras.map((r) => {
+              const ocupTipo =
+                r.capacidade > 0
+                  ? Math.round(((r.capacidade - r.capacidadeDisponivel) / r.capacidade) * 100)
+                  : 0
+              const barColor =
+                ocupTipo > 75 ? "bg-destructive" : ocupTipo > 50 ? "bg-amber-500" : "bg-primary"
+              return (
+                <div
+                  key={r.tipoVeiculo}
+                  className="bg-card p-4 rounded-lg border border-border"
+                >
+                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+                    {r.tipoVeiculo}
+                  </p>
+                  <p className="text-xl font-bold text-foreground">
+                    {r.capacidadeDisponivel}
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {" "}/ {r.capacidade}
+                    </span>
+                  </p>
+                  <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${barColor} transition-all duration-300`}
+                      style={{ width: `${ocupTipo}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">{ocupTipo}% ocupado</p>
+                </div>
+              )
+            })}
           </div>
-        </div>
-        <div className="bg-card p-4 rounded-lg border border-border flex items-center gap-3">
-          <Bike className="w-8 h-8 text-orange-500" />
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">Motos</p>
-            <p className="text-xl font-bold text-foreground">--</p>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="flex gap-4">
         <Button
           onClick={() => router.push(`/usuario/motorista/estacionamento/${parking.id}/historico`)}
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-6 flex items-center justify-center gap-2"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-6 flex items-center justify-center gap-2 cursor-pointer"
         >
           <Clock className="w-5 h-5" />
           Ver Histórico de Ocupação
